@@ -68,14 +68,13 @@ def add_noise_to_string(a_string, amount_of_noise):
                     a_string[i + 2:])
     return a_string
 
-def misspelling_gen(phrases, noise, misspelled_times):
+def create_misspellings(phrases, noise, misspelled_times):
     """given a list of N phrases it appends to this list 
     another misspelled_times*N phrases that permutations of the
     input ones with some random spelling errors introduced"""
-    misspelled = [add_noise_to_string(p, .1) for p in phrases * misspelled_times]
+    misspelled = [add_noise_to_string(p, noise) for p in phrases * misspelled_times]
     all_phrases = phrases + misspelled
     target_phrases = phrases * (misspelled_times + 1)
-
     return all_phrases, target_phrases
 
 def token_index(texts):
@@ -89,10 +88,10 @@ def token_index(texts):
 
 def vectorize_batch(texts, token_index, max_seq_len, offset=False):
     num_tokens = len(token_index)
-    example_count =len(texts)
+    example_count = len(texts)
 
     # Generate 1-hot encoding
-    data = np.zeros((example_count, max_seq_len, num_tokens),dtype='float32')
+    data = np.zeros((example_count, max_seq_len, num_tokens), dtype='float32')
 
     for i, text in enumerate(texts):
         start_t = 1 if offset else 0
@@ -114,7 +113,6 @@ def vectorize_dataset(input_texts, target_texts,
 
 def vectorize_phrase(phrase, token_index, max_seq_len):
     num_tokens = len(token_index)
-
     # Generate 1-hot encoding
     # -> maximum phrase size x # of possible characters
     vectorized = np.zeros((1, max_seq_len, num_tokens),dtype='float32')
@@ -126,9 +124,10 @@ def vectorize_phrase(phrase, token_index, max_seq_len):
     return vectorized
 
 def decode_sequence(input_seq, target_token_index, encoder_model, decoder_model):
+    # construct the reverse 
     # Encode the input as state vectors.
     states_value = encoder_model.predict(input_seq)
-
+    reverse_target_char_index = {v: k for k, v in target_token_index.items()} 
     # the count of possible target tokens
     num_decoder_tokens = len(target_token_index)
 
@@ -164,6 +163,16 @@ def decode_sequence(input_seq, target_token_index, encoder_model, decoder_model)
 
     return decoded_sentence
 
+def translate_fn(encoder_model, decoder_model,
+                 input_token_index, target_token_index,
+                 max_encoder_seq_length):
+    def translate(phrase):
+        vect = vectorize_phrase(phrase, input_token_index,
+                                max_encoder_seq_length)
+        decoded = decode_sequence(vect,target_token_index, 
+                                  encoder_model, decoder_model)
+        return decoded[:-1]
+    return translate
 
 def plot_history(history):
     """credit: https://machinelearningmastery.com/display-deep-learning-model-training-history-in-keras/"""
@@ -172,5 +181,5 @@ def plot_history(history):
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.show()
