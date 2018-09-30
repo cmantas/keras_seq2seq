@@ -177,12 +177,17 @@ def translate_fn(encoder_model, decoder_model,
     return translate
 
 def plot_history(history):
-    """credit: https://machinelearningmastery.com/display-deep-learning-model-training-history-in-keras/"""
+    """plots the metrics of an instance of keras.callbacks.History"""
     plt.plot(history.history['loss'])
-    val_loss = history.history.get('val_loss', [])
-    plt.plot(val_loss)
-    plt.plot(history.history.get('acc', []))
-    plt.title('model loss')
+    labels = ['training loss']
+    metrics = { 'val_loss': 'validation loss', 'acc': 'training accuracy', 
+                'val_acc': 'validation accuracy' }
+    for metric, label in metrics.items():
+        if metric in history.history:
+            plt.plot(history.history[metric])
+            labels.append(label)
+
+    plt.title('Model Metrics')
     plt.xlabel('epoch')
-    plt.legend(['train', 'validation', 'accuracy'], loc='upper left')
+    plt.legend(labels, loc='upper right')
     plt.show()
