@@ -2,6 +2,8 @@ import numpy as np
 from random import Random
 from numpy.random import choice, randint, shuffle, seed, rand
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.style.use('seaborn')
 
 
 def read_data(fname, delimiter="\n"):
@@ -177,9 +179,10 @@ def translate_fn(encoder_model, decoder_model,
 def plot_history(history):
     """credit: https://machinelearningmastery.com/display-deep-learning-model-training-history-in-keras/"""
     plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
+    val_loss = history.history.get('val_loss', [])
+    plt.plot(val_loss)
+    plt.plot(history.history.get('acc', []))
     plt.title('model loss')
-    plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='upper left')
+    plt.legend(['train', 'validation', 'accuracy'], loc='upper left')
     plt.show()
