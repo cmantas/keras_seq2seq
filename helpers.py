@@ -88,18 +88,18 @@ def token_index(texts):
     vocab = sorted(list(vocab))
     return dict([(char, i) for i, char in enumerate(vocab)])
 
-def vectorize_batch(texts, token_index, max_seq_len, offset=False):
+def vectorize_batch(texts, token_index, max_seq_len, dtype='float32'):
     num_tokens = len(token_index)
     example_count = len(texts)
 
     # Generate 1-hot encoding
-    data = np.zeros((example_count, max_seq_len, num_tokens), dtype='float32')
+    data = np.zeros((example_count, max_seq_len, num_tokens), dtype=dtype)
 
     for i, text in enumerate(texts):
-        start_t = 1 if offset else 0
-        for t, char in enumerate(text[start_t:]):
+        for t, char in enumerate(text):
+            
             idx = token_index[char]
-            data[i, t, idx] = 1.
+            data[i, t, idx] = 1
     return data
 
 def vectorize_dataset(input_texts, target_texts,
