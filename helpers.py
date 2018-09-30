@@ -70,11 +70,14 @@ def add_noise_to_string(a_string, amount_of_noise):
                     a_string[i + 2:])
     return a_string
 
-def create_misspellings(phrases, noise, misspelled_times):
+def create_misspellings(phrases, noise, misspelled_times, max_txt_len):
     """given a list of N phrases it appends to this list 
     another misspelled_times*N phrases that permutations of the
     input ones with some random spelling errors introduced"""
-    misspelled = [add_noise_to_string(p, noise) for p in phrases * misspelled_times]
+    misspelled = []
+    for p in phrases * misspelled_times:
+        noisy = add_noise_to_string(p, noise)
+        misspelled.append(noisy[:max_txt_len])
     all_phrases = phrases + misspelled
     target_phrases = phrases * (misspelled_times + 1)
     return all_phrases, target_phrases
