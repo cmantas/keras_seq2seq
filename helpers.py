@@ -211,3 +211,64 @@ def plot_history(history):
     plt.xlabel('epoch')
     plt.legend(labels, loc='upper right')
     plt.show()
+
+def evaluate_batch(input_texts, target_texts, model, token_idx,
+                   max_target_seq_length):
+    """Given a list of input and a set of target texts, it calcuates the
+     ratio of phrases that the corrector got wrong (the error for the
+     whole sequence) works only for models of type Sequential"""
+    #assert isinstance(model, Sequential)
+    input_data = vectorize_batch(input_texts, token_idx,
+                                 max_target_seq_length, dtype=np.bool)
+    predicted_data = model.predict_classes(input_data, 1000)
+    inverse_token_index = {v: k for k, v in token_idx.items()}
+    erroneous = .0
+    for i,p in enumerate(predicted_data):
+        txt = ''.join([inverse_token_index[i] for i in p])
+        end_idx = txt.find("\n")
+        txt = txt[1:end_idx]
+        if txt != target_texts[i]:
+            erroneous += 1
+    return erroneous / len(input_texts)
+
+def dual_evaluate_batch(texts, misspelled_texts, model, token_idx,
+                        max_target_seq_length):
+    """Runs `evaluate_batch` on the original set of phrases and on the
+     misspelled one"""
+    #assert isinstance(model, Sequential)
+    target_texts = texts
+    # error on correct phrases
+    ec = evaluate_batch(target_texts, target_texts, model, token_idx,
+                      max_target_seq_length)
+    # error on misspelled phrases
+    em = evaluate_batch(misspelled_texts, target_texts, model, token_idx,
+                      max_target_seq_length)
+    return (ec, em)
+
+def sequential_translator_fn(model, token_index, max_seq_len):
+    inverse_token_index = {v: k for k, v in token_index.items()}
+    def predict(in_phrase):
+        x = vectorize_phrase(in_phrase, token_index, max_seq_len)
+        pred_idxes = model.predict_classes(x, verbose=0)[0]
+        txt = ''.join([inverse_token_index[i] for i in pred_idxes])
+        end_idx = txt.find("\n")
+        return txt[1:end_idx]
+    return predict
+
+def evaluate_correct(texts, corrector):
+    errors = 0.0
+    for t in texts:
+        if t != corrector(t): errors += 1
+    return errors / len(texts)
+
+def evaluate_misspelled(texts, corrector):
+    errors = 0.0
+    for t in texts:
+        errored = add_noise_to_string(t, 0.05)
+        if t != corrector(errored): errors += 1
+    return errors / len(texts)
+ 
+def dual_evaluate(texts, corrector):
+    correct = evaluate_correct(texts, corrector)
+    misspelled = evaluate_misspelled(texts, corrector)
+    return (correct, misspelled)
