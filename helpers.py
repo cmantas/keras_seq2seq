@@ -25,6 +25,23 @@ def read_data(fname, delimiter="\n"):
 
         return (input_phrases, target_phrases)
 
+def load_preprocessed(data_path, max_len):
+    """Dirty helper fn loading a file from disk, doing some basic preprocessing
+        and filtering out phrases that are longer than our maximum sequence length"""
+    with open(data_path) as f:
+        lines = f.readlines()
+    lines = text_preprocess(lines)
+    # allow only for a limited count of 
+    allowed_chars = set(' !"#$%&\'()+,-./0123456789:;?[]_`abcdefghijklmnopqrstuvwxyz{}')
+    selected = []
+    for l in lines:
+        if all([c in allowed_chars for c in l.strip()]) and \
+           len(l) <= max_len:
+            selected.append(l)
+    # suffle deterministically
+    Random(0).shuffle(selected)
+    return selected
+
 def wrap_with_delims(texts, start='\t', end='\n'):
     """Helper wrapping the input texts with the start
     and and end sequence delimiters.""" 
