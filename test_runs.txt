@@ -1,0 +1,15 @@
+Dry runs with 30 steps/epoch (30 batches):
+
+bidirectional, lstm, 500, time-dist:         (0.146, 0.5575)
+bidirectional, lstm, 512, dense    :         (0.195, 0.583125)
+bidrectional, bidirectional, 512, time-dist: (0.1525, 0.557625)
+bidirectional+drop 0.75, lstm, 512, time-dist:    (0.099, 0.542375)
+bidirectional+drop 0.2, lstm, 512, time-dist:    (0.0975, 0.53225)
+bidirectional+drop 0.2, lstm+drop 0.2, 512, time-dist:    (0.076, 0.516625) !!!
+bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist:    (0.0685,0.509625)
+bidirectional+drop 0.2-rd .2, lstm+drop 0.2-rd .2, 512, time-dist:    (0.072, 0.517625)
+bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 256, time-dist:  (0.075, 0.53775)
+bidirectional+drop 0.2, rd .2, time-dist, lstm+drop 0.2, 512, time-dist:(0.9995, 0.99975)
+bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist, time-dist: (0.0775, 0.515125)
+^^^ full training with that
+
