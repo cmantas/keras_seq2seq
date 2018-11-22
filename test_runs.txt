@@ -1,15 +1,27 @@
 Dry runs with 30 steps/epoch (30 batches):
 
-bidirectional, lstm, 500, time-dist:         (0.146, 0.5575)
-bidirectional, lstm, 512, dense    :         (0.195, 0.583125)
-bidrectional, bidirectional, 512, time-dist: (0.1525, 0.557625)
-bidirectional+drop 0.75, lstm, 512, time-dist:    (0.099, 0.542375)
-bidirectional+drop 0.2, lstm, 512, time-dist:    (0.0975, 0.53225)
-bidirectional+drop 0.2, lstm+drop 0.2, 512, time-dist:    (0.076, 0.516625) !!!
-bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist:    (0.0685,0.509625)
-bidirectional+drop 0.2-rd .2, lstm+drop 0.2-rd .2, 512, time-dist:    (0.072, 0.517625)
-bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 256, time-dist:  (0.075, 0.53775)
-bidirectional+drop 0.2, rd .2, time-dist, lstm+drop 0.2, 512, time-dist:(0.9995, 0.99975)
-bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist, time-dist: (0.0775, 0.515125)
-^^^ full training with that
+1) bidirectional, lstm, 500, time-dist:         (0.146, 0.5575)
+2) bidirectional, lstm, 512, dense    :         (0.195, 0.583125)
+3) bidrectional, bidirectional, 512, time-dist: (0.1525, 0.557625)
+4) bidirectional+drop 0.75, lstm, 512, time-dist:    (0.099, 0.542375)
+5) bidirectional+drop 0.2, lstm, 512, time-dist:    (0.0975, 0.53225)
+6) bidirectional+drop 0.2, lstm+drop 0.2, 512, time-dist:    (0.076, 0.516625)
+7) bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist:    (0.0685,0.509625) !!!
+8) bidirectional+drop 0.2-rd .2, lstm+drop 0.2-rd .2, 512, time-dist:    (0.072, 0.517625)
+9) bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 256, time-dist:  (0.075, 0.53775)
+10)bidirectional+drop 0.2, rd .2, time-dist, lstm+drop 0.2, 512, time-dist:(0.9995, 0.99975)
+11)bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist, time-dist: (0.0775, 0.515125)
+12)bidirectional rd.05, lstm, 512, time-dist, time-dist: ?
+13)bidirectional drop .05, lstm, 512, time-dist, time-dist: ?
+14)bidirectional rd.1, lstm, 512, time-dist, time-dist: ?
+
+
+
+Full training
+11) epoch 46, 220K len30/33   : loss: 0.0638 - acc: 0.7247 - val_loss: 0.0693 - val_acc: 0.7228
+3)  50 epochs, 220K len30/33 :loss: 0.0461 - acc: 0.7790 - val_loss: 0.0592 - val_acc: 0.7714, (0.037, 0.155875)
+3)  30 epochs, 395K len30/33 :loss: 0.0508 - acc: 0.7613 - val_loss: 0.0617 - val_acc: 0.7505  (0.0325, 0.156)
+12) 47 epochs, 220K len30/33 :loss: 0.0486 - acc: 0.7877 - val_loss: 0.0573 - val_acc: 0.7823  (0.0325, 0.149)
+12) 25 epochs, 395K len30/33 :loss: 0.0528 - acc: 0.7770 - val_loss: 0.0596 - val_acc: 0.7631  (0.029, 0.144875)
+13) 25 epochs, 395K len30/33 : ...                  ??                                         (0.026, 0.177125)
 
