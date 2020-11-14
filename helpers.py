@@ -117,7 +117,7 @@ def vectorize_batch(texts, token_index, max_seq_len, dtype='float32'):
 
     for i, text in enumerate(texts):
         for t, char in enumerate(text):
-            
+
             idx = token_index[char]
             data[i, t, idx] = 1
     return data
@@ -146,10 +146,10 @@ def vectorize_phrase(phrase, token_index, max_seq_len):
     return vectorized
 
 def decode_sequence(input_seq, target_token_index, encoder_model, decoder_model):
-    # construct the reverse 
+    # construct the reverse
     # Encode the input as state vectors.
     states_value = encoder_model.predict(input_seq)
-    reverse_target_char_index = {v: k for k, v in target_token_index.items()} 
+    reverse_target_char_index = {v: k for k, v in target_token_index.items()}
     # the count of possible target tokens
     num_decoder_tokens = len(target_token_index)
 
@@ -191,7 +191,7 @@ def translate_fn(encoder_model, decoder_model,
     def translate(phrase):
         vect = vectorize_phrase(phrase, input_token_index,
                                 max_encoder_seq_length)
-        decoded = decode_sequence(vect,target_token_index, 
+        decoded = decode_sequence(vect,target_token_index,
                                   encoder_model, decoder_model)
         return decoded[:-1]
     return translate
@@ -200,7 +200,7 @@ def plot_history(history):
     """plots the metrics of an instance of keras.callbacks.History"""
     plt.plot(history.history['loss'])
     labels = ['training loss']
-    metrics = { 'val_loss': 'validation loss', 'acc': 'training accuracy', 
+    metrics = { 'val_loss': 'validation loss', 'acc': 'training accuracy',
                 'val_acc': 'validation accuracy' }
     for metric, label in metrics.items():
         if metric in history.history:
@@ -267,7 +267,7 @@ def evaluate_misspelled(texts, corrector):
         errored = add_noise_to_string(t, 0.05)
         if t != corrector(errored): errors += 1
     return errors / len(texts)
- 
+
 def dual_evaluate(texts, corrector):
     correct = evaluate_correct(texts, corrector)
     misspelled = evaluate_misspelled(texts, corrector)
