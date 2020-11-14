@@ -108,6 +108,12 @@ def token_index(texts):
     vocab = sorted(list(vocab))
     return dict([(char, i) for i, char in enumerate(vocab)])
 
+def batcher(phrases, batch_size):
+  for i in range(0, len(phrases), batch_size):
+    frrom = i
+    to = i+batch_size
+    yield phrases[frrom:to]
+
 def vectorize_batch(texts, token_index, max_seq_len, dtype='float32'):
     num_tokens = len(token_index)
     example_count = len(texts)
