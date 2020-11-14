@@ -62,21 +62,21 @@ class S2SModel:
 
     def create_model(self, latent_dim = 128):
       token_count = len(self.token_idx)
-      initializer = 'he_normal'
       output_len = self.max_seq_length
 
-      encoder = LSTM(latent_dim, input_shape=(None, token_count),
-                     kernel_initializer=initializer)
-      repeater = RepeatVector(output_len)
+      encoder = Bidirectional(
+        LSTM(latent_dim, return_sequences=True),
+        input_shape=(output_len, token_count)
+      )
+      # ~decoder
+      decoder = Bidirectional(
+        LSTM(latent_dim, return_sequences=True)
+      )
+      time_dist = Dense(token_count, activation='softmax')
 
-      decoder = LSTM(latent_dim, return_sequences=True,
-                     kernel_initializer=initializer)
-      time_dist = Dense(token_count, kernel_initializer=initializer)
-
-      activation = Activation('softmax')
 
       model = Sequential(
-        [encoder, repeater, decoder, time_dist, activation]
+        [encoder, decoder, time_dist]
       )
 
       model.compile(loss=LOSS_FN,
