@@ -4,6 +4,9 @@ from sklearn.model_selection import train_test_split
 from keras.models import Model, load_model, Sequential
 from keras.layers import Input, LSTM, Dense, RepeatVector,                                     TimeDistributed, Activation, GRU, Dropout,                            Bidirectional
 
+import random
+random.seed(1)
+
 BATCH_SIZE = 100 #1000
 OPTIMIZER = 'adam'
 LOSS_FN = 'categorical_crossentropy'
