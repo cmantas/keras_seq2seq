@@ -15,7 +15,7 @@ seed(1)
 from tensorflow.random import set_seed
 set_seed(2)
 
-BATCH_SIZE = 100 #1000
+BATCH_SIZE = 1000
 OPTIMIZER = 'adam'
 LOSS_FN = 'sparse_categorical_crossentropy'
 
@@ -72,9 +72,10 @@ class S2SModel:
     def training_gen(self, texts):
         while True:
             Random().shuffle(texts)
-            X = self.vectorize_batch(texts)
-            Y = self.vectorize_output_batch(texts)
-            yield (X, Y)
+            for batch in batcher(texts, BATCH_SIZE):
+              X = self.vectorize_batch(batch)
+              Y = self.vectorize_output_batch(batch)
+              yield (X, Y)
 
     def create_model(self, latent_dim = 128):
       token_count = len(self.tokenizer.word_index)
