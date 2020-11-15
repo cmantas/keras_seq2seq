@@ -102,17 +102,17 @@ class S2SModel:
       return model
 
 
-    def train(self, texts, epochs=1, init=True, test_size=None, verbose=1):
+    def train(self, texts, epochs=1, init=True, val_size=None, verbose=1):
       if init:
         self.model = self.create_model()
 
       if len(texts) < 100:
-        test_size = 0
-      elif test_size is None:
-        test_size = .1
+        val_size = 0
+      elif val_size is None:
+        val_size = .1
 
       train_txts, test_txts = train_test_split(
-        texts, test_size=test_size
+        texts, test_size=val_size
       )
 
       val_X = self.vectorize_batch(test_txts)
