@@ -10,8 +10,10 @@ from keras.preprocessing.text import Tokenizer
 from keras.utils import to_categorical
 from keras.preprocessing.sequence import pad_sequences
 
-import random
-random.seed(1)
+from numpy.random import seed
+seed(1)
+from tensorflow.random import set_seed
+set_seed(2)
 
 BATCH_SIZE = 100 #1000
 OPTIMIZER = 'adam'
