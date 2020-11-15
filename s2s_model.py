@@ -1,3 +1,6 @@
+from math import ceil
+
+
 from helpers import *
 from sklearn.model_selection import train_test_split
 
@@ -102,7 +105,7 @@ class S2SModel:
       val_X = self.vectorize_batch(test_txts)
       val_Y = self.vectorize_output_batch(test_txts)
 
-      steps_per_epoch = len(texts) / BATCH_SIZE
+      steps_per_epoch = ceil(len(texts) / BATCH_SIZE)
 
       gen = self.training_gen(texts)
 
