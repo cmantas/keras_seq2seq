@@ -6,13 +6,16 @@ from sklearn.model_selection import train_test_split
 
 from keras.models import Model, load_model, Sequential
 from keras.layers import Input, LSTM, Dense, RepeatVector,                                     TimeDistributed, Activation, GRU, Dropout,                            Bidirectional
+from keras.preprocessing.text import Tokenizer
+from keras.utils import to_categorical
+from keras.preprocessing.sequence import pad_sequences
 
 import random
 random.seed(1)
 
 BATCH_SIZE = 100 #1000
 OPTIMIZER = 'adam'
-LOSS_FN = 'categorical_crossentropy'
+LOSS_FN = 'sparse_categorical_crossentropy'
 
 def chunkify(lst,n):
   return [lst[i::n] for i in range(n)]
@@ -36,6 +39,7 @@ class S2SModel:
         self.token_idx = None
         self.inverse_token_index = None
         self.num_encoder_tokens = None
+        self.tokenizer = None
 
     def init_from_texts(self, texts):
         # \t and \n are our [START] and [END] delimiters.
@@ -45,15 +49,18 @@ class S2SModel:
           v: k for k, v in self.token_idx.items()
         }
         self.num_encoder_tokens = len(self.token_idx)
+        self.tokenizer = Tokenizer(char_level=True)
 
     def vectorize_batch(self, texts):
-        return vectorize_batch(texts, self.token_idx,
-                               self.max_seq_length,
-                               dtype=np.bool)
+        return vectorize_batch(
+          texts, self.token_idx, self.max_seq_length, dtype='bool')
 
     def vectorize_output_batch(self, texts):
         delim_texts = wrap_with_delims(texts)
-        return self.vectorize_batch(delim_texts)
+        #return self.vectorize_batch(delim_texts)
+        seqs = self.tokenizer.texts_to_sequences(texts)
+        pseqs = pad_sequences(seqs, self.max_seq_length)
+        return pseqs.reshape((*pseqs.shape, 1))
 
     def vectorize_phrase(self, txt):
       return vectorize_phrase(txt, self.token_idx,
@@ -122,29 +129,3 @@ class S2SModel:
       txt = ''.join(chars)
       end_idx = txt.find("\n")
       return txt[1:end_idx]
-
-
-
-
-
-
-texts = ['abc', 'cbd'] * 10
-
-model = S2SModel(3)
-model.init_from_texts(texts)
-
-m = model.create_model()
-
-model.train(texts, 10)
-
-pred = model.predict('abc')
-
-max_len = 15
-all_phrases = load_preprocessed('sentences.txt', max_len)
-all_phrases = all_phrases[:3000]
-BATCH_SIZE = 250
-model = S2SModel(max_len)
-model.init_from_texts(all_phrases)
-model.train(all_phrases, 100)
-
-print([model.predict(p) for p in all_phrases[:10]])
