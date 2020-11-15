@@ -37,7 +37,7 @@ def misspelled_gen(phrases, batch_size, noise, misspellings_count,
 class S2SModel:
     def __init__(self, max_string_length=25):
         # accomodate for the delimiters + spelling correction
-        self.max_seq_length = max_string_length + 3
+        self.max_seq_length = max_string_length #+ 3
         self.token_idx = None
         self.inverse_token_index = None
         self.num_encoder_tokens = None
@@ -52,16 +52,17 @@ class S2SModel:
         }
         self.num_encoder_tokens = len(self.token_idx)
         self.tokenizer = Tokenizer(char_level=True)
+        self.tokenizer.fit_on_texts(texts + ['\t', '\n'])
 
     def vectorize_batch(self, texts):
         return vectorize_batch(
           texts, self.token_idx, self.max_seq_length, dtype='bool')
 
     def vectorize_output_batch(self, texts):
-        delim_texts = wrap_with_delims(texts)
+        #texts = wrap_with_delims(texts)
         #return self.vectorize_batch(delim_texts)
         seqs = self.tokenizer.texts_to_sequences(texts)
-        pseqs = pad_sequences(seqs, self.max_seq_length)
+        pseqs = pad_sequences(seqs, self.max_seq_length, padding='post')
         return pseqs.reshape((*pseqs.shape, 1))
 
     def vectorize_phrase(self, txt):
@@ -76,7 +77,7 @@ class S2SModel:
             yield (X, Y)
 
     def create_model(self, latent_dim = 128):
-      token_count = len(self.token_idx)
+      token_count = len(self.tokenizer.word_index)
       output_len = self.max_seq_length
 
       encoder = Bidirectional(
@@ -100,11 +101,13 @@ class S2SModel:
       return model
 
 
-    def train(self, texts, epochs=1, init=True, test_size=None):
+    def train(self, texts, epochs=1, init=True, test_size=None, verbose=1):
       if init:
         self.model = self.create_model()
 
-      if test_size is None:
+      if len(texts) < 100:
+        test_size = 0
+      elif test_size is None:
         test_size = .1
 
       train_txts, test_txts = train_test_split(
@@ -121,13 +124,20 @@ class S2SModel:
       hist = self.model.fit(
         gen, validation_data=(val_X, val_Y),
         steps_per_epoch=steps_per_epoch,
-        verbose=1, max_queue_size=1, epochs=epochs
+        verbose=verbose, max_queue_size=1, epochs=epochs
       )
 
-    def predict(self, txt):
-      x = self.vectorize_phrase(txt)
-      pred_idxes = self.model.predict_classes(x, verbose=0)[0]
-      chars = [self.inverse_token_index[i] for i in pred_idxes]
-      txt = ''.join(chars)
-      end_idx = txt.find("\n")
-      return txt[1:end_idx]
+    def seq_to_text(self, seq):
+      chars = [self.tokenizer.index_word.get(i, '#') for i in seq]
+      return ''.join(chars)
+
+    def predict(self, in_txts):
+      wrap = isinstance(in_txts, str)
+
+      txts = [in_txts] if wrap else in_txts
+
+      x = self.vectorize_batch(txts)
+      pred_seqs = self.model.predict_classes(x, verbose=0)
+      out_txts = [self.seq_to_text(seq) for seq in pred_seqs]
+
+      return out_txts[0] if wrap else out_txts
