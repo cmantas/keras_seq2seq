@@ -5,7 +5,10 @@ from helpers import *
 from sklearn.model_selection import train_test_split
 
 from keras.models import Model, load_model, Sequential
-from keras.layers import Input, LSTM, Dense, RepeatVector,                                     TimeDistributed, Activation, GRU, Dropout,                            Bidirectional
+from keras.layers import Input, LSTM, Dense, RepeatVector, \
+  TimeDistributed, Activation, GRU, Dropout, Bidirectional, \
+  Embedding, Lambda
+import keras.backend as K
 from keras.preprocessing.text import Tokenizer
 from keras.utils import to_categorical
 from keras.preprocessing.sequence import pad_sequences
@@ -55,15 +58,15 @@ class S2SModel:
         self.tokenizer.fit_on_texts(texts + ['\t', '\n'])
 
     def vectorize_batch(self, texts):
-        return vectorize_batch(
-          texts, self.token_idx, self.max_seq_length, dtype='bool')
+      seqs = self.tokenizer.texts_to_sequences(texts)
+      return pad_sequences(seqs, self.max_seq_length, padding='post')
 
     def vectorize_output_batch(self, texts):
-        #texts = wrap_with_delims(texts)
-        #return self.vectorize_batch(delim_texts)
-        seqs = self.tokenizer.texts_to_sequences(texts)
-        pseqs = pad_sequences(seqs, self.max_seq_length, padding='post')
-        return pseqs.reshape((*pseqs.shape, 1))
+      #texts = wrap_with_delims(texts)
+      seqs = self.vectorize_batch(texts)
+      # reshape to a 3d array of (?, vocab_size, 1)
+      return seqs.reshape((*seqs.shape, 1))
+
 
     def vectorize_phrase(self, txt):
       return vectorize_phrase(txt, self.token_idx,
@@ -77,9 +80,21 @@ class S2SModel:
               Y = self.vectorize_output_batch(batch)
               yield (X, Y)
 
+    @classmethod
+    def one_hot_layer(cls, token_count):
+      # Alternatively, with an embedding layer:
+      # Embedding(input_dim=token_count, output_dim=token_count,
+      #                    input_length=None, trainable=False,
+      #                    embeddings_initializer='identity')
+      # This could conceivably be trainable too
+
+      return Lambda(lambda x:K.one_hot(x, token_count))
+
     def create_model(self, latent_dim = 128):
       token_count = len(self.tokenizer.word_index)
       output_len = self.max_seq_length
+
+      one_hot = self.one_hot_layer(token_count)
 
       encoder = Bidirectional(
         LSTM(latent_dim, return_sequences=True),
@@ -93,7 +108,7 @@ class S2SModel:
 
 
       model = Sequential(
-        [encoder, decoder, time_dist]
+        [one_hot, encoder, decoder, time_dist]
       )
 
       model.compile(loss=LOSS_FN,
