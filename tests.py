@@ -14,13 +14,13 @@ phrases = texts[:10]
 print(list(zip(model.predict(phrases), phrases)))
 
 
-max_len = 15
-all_phrases = load_preprocessed('sentences.txt', max_len)
-all_phrases = all_phrases[:5_000]
+max_len = 20
+all_phrases = load_preprocessed('data/sentences.txt', max_len)
+all_phrases = all_phrases[:30_000]
 BATCH_SIZE = 250
 model = S2SModel(max_len)
 model.init_from_texts(all_phrases)
-model.train(all_phrases, 5)
+model.train(all_phrases, 5, val_size=1_000)
 
 phrases = all_phrases[:10]
 print(list(zip(model.predict(phrases), phrases)))
