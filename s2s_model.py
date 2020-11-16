@@ -98,7 +98,7 @@ class S2SModel:
 
       model.compile(loss=LOSS_FN,
                     optimizer=OPTIMIZER,
-                    metrics=['accuracy'])
+                    metrics=['sparse_categorical_accuracy'])
       return model
 
 
