@@ -106,6 +106,10 @@ class S2SModel:
     def steps_per_epoch(self, size):
         return ceil(size / self.BATCH_SIZE)
 
+    def validation_data(self, val_texts):
+        val_X = self.vectorize_batch(val_texts)
+        val_Y = self.vectorize_output_batch(val_texts)
+        return (val_X, val_Y)
 
     def train(self, texts, epochs=1, init=True, val_size=None, verbose=1):
       if init:
@@ -120,15 +124,12 @@ class S2SModel:
         texts, test_size=val_size
       )
 
-      val_X = self.vectorize_batch(test_txts)
-      val_Y = self.vectorize_output_batch(test_txts)
-
       gen = self.training_gen(texts)
 
       hist = self.model.fit(
-        gen, validation_data=(val_X, val_Y),
-        steps_per_epoch=self.steps_per_epoch(len(texts)),
-        verbose=verbose, max_queue_size=1, epochs=epochs
+          gen, validation_data=self.validation_data(test_txts),
+          steps_per_epoch=self.steps_per_epoch(len(texts)),
+          verbose=verbose, max_queue_size=1, epochs=epochs
       )
 
     def seq_to_text(self, seq):
