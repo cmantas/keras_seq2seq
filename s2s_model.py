@@ -20,16 +20,18 @@ set_seed(2)
 
 class S2SModel:
     BATCH_SIZE = 1000
+    LATENT_DIM = 128
     OPTIMIZER = 'adam'
     LOSS_FN = 'sparse_categorical_crossentropy'
 
-    def __init__(self, max_string_length=25):
+    def __init__(self, max_string_length=25, latent_dim=LATENT_DIM):
         # accomodate for the delimiters + spelling correction
         self.max_seq_length = max_string_length #+ 3
         self.token_idx = None
         self.inverse_token_index = None
         self.num_encoder_tokens = None
         self.tokenizer = None
+        self.latent_dim = latent_dim
 
     def init_from_texts(self, texts):
         # \t and \n are our [START] and [END] delimiters.

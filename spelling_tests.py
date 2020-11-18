@@ -17,7 +17,7 @@ max_len = 20
 all_phrases = load_preprocessed('data/sentences.txt', max_len)
 all_phrases = all_phrases[:30_000]
 BATCH_SIZE = 250
-model = SpellingModel(max_len)
+model = SpellingModel(max_len, 256)
 model.init_from_texts(all_phrases)
 model.train(all_phrases, 25, val_size=1_000)
 
