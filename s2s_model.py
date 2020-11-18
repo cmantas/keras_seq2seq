@@ -18,6 +18,13 @@ seed(1)
 from tensorflow.random import set_seed
 set_seed(2)
 
+def seq_acc(y_true, y_pred):
+    a,b,_1 = y_true.shape
+    y = y_true.numpy().reshape(a,b)
+    y_h= np.argmax(y_pred.numpy(), 2)
+    seq_acc = np.all((y == y_h), axis=1).sum() / len(y)
+    return seq_acc
+
 class S2SModel:
     BATCH_SIZE = 1000
     LATENT_DIM = 128
@@ -102,7 +109,8 @@ class S2SModel:
 
       model.compile(loss=self.LOSS_FN,
                     optimizer=self.OPTIMIZER,
-                    metrics=['sparse_categorical_accuracy'])
+                    run_eagerly=True,
+                    metrics=['sparse_categorical_accuracy', seq_acc])
       return model
 
     def steps_per_epoch(self, size):
