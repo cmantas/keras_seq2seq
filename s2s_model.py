@@ -85,9 +85,11 @@ class S2SModel:
       # Alternatively, with an embedding layer:
       # Embedding(input_dim=token_count, output_dim=token_count,
       #                    input_length=None, trainable=False,
-      #                    embeddings_initializer='identity')
+      #                    embeddings_initializer='identity',
+      #                    dtype='float16')
       # This could conceivably be trainable too
 
+      # maybe: one_hot(K.cast(x,'uint8'), token_count))
       return Lambda(lambda x:K.one_hot(x, token_count))
 
     def create_model(self, latent_dim = 128):
