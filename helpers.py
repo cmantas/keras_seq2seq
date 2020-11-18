@@ -85,10 +85,15 @@ def add_noise_to_string(a_string, amount_of_noise):
         i = randint(len(a_string) - 1)
         a_string = (a_string[:i] + a_string[i + 1] + a_string[i] +
                     a_string[i + 2:])
-    return a_string
+
+    # recursively call myself if I failed to alter the string
+    if a_string == string:
+        return add_noise_to_string(string, amount_of_noise)
+    else:
+        return a_string
 
 def create_misspellings(phrases, noise, misspelled_times, max_txt_len):
-    """given a list of N phrases it appends to this list 
+    """given a list of N phrases it appends to this list
     another misspelled_times*N phrases that permutations of the
     input ones with some random spelling errors introduced"""
     misspelled = []
