@@ -18,9 +18,6 @@ seed(1)
 from tensorflow.random import set_seed
 set_seed(2)
 
-BATCH_SIZE = 1000
-OPTIMIZER = 'adam'
-LOSS_FN = 'sparse_categorical_crossentropy'
 
 def chunkify(lst,n):
   return [lst[i::n] for i in range(n)]
@@ -38,6 +35,10 @@ def misspelled_gen(phrases, batch_size, noise, misspellings_count,
     yield from zip(mis_chunks, cor_chunks)
 
 class S2SModel:
+    BATCH_SIZE = 1000
+    OPTIMIZER = 'adam'
+    LOSS_FN = 'sparse_categorical_crossentropy'
+
     def __init__(self, max_string_length=25):
         # accomodate for the delimiters + spelling correction
         self.max_seq_length = max_string_length #+ 3
@@ -75,7 +76,7 @@ class S2SModel:
     def training_gen(self, texts):
         while True:
             Random().shuffle(texts)
-            for batch in batcher(texts, BATCH_SIZE):
+            for batch in batcher(texts, self.BATCH_SIZE):
               X = self.vectorize_batch(batch)
               Y = self.vectorize_output_batch(batch)
               yield (X, Y)
@@ -113,10 +114,13 @@ class S2SModel:
         [one_hot, encoder, decoder, time_dist]
       )
 
-      model.compile(loss=LOSS_FN,
-                    optimizer=OPTIMIZER,
+      model.compile(loss=self.LOSS_FN,
+                    optimizer=self.OPTIMIZER,
                     metrics=['sparse_categorical_accuracy'])
       return model
+
+    def steps_per_epoch(self, size):
+        return ceil(size / self.BATCH_SIZE)
 
 
     def train(self, texts, epochs=1, init=True, val_size=None, verbose=1):
@@ -135,18 +139,16 @@ class S2SModel:
       val_X = self.vectorize_batch(test_txts)
       val_Y = self.vectorize_output_batch(test_txts)
 
-      steps_per_epoch = ceil(len(texts) / BATCH_SIZE)
-
       gen = self.training_gen(texts)
 
       hist = self.model.fit(
         gen, validation_data=(val_X, val_Y),
-        steps_per_epoch=steps_per_epoch,
+        steps_per_epoch=self.steps_per_epoch(len(texts)),
         verbose=verbose, max_queue_size=1, epochs=epochs
       )
 
     def seq_to_text(self, seq):
-      chars = [self.tokenizer.index_word.get(i, '#') for i in seq]
+      chars = [self.tokenizer.index_word.get(i, '') for i in seq]
       return ''.join(chars)
 
     def predict(self, in_txts):
