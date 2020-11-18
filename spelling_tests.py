@@ -19,7 +19,7 @@ all_phrases = all_phrases[:30_000]
 BATCH_SIZE = 250
 model = SpellingModel(max_len)
 model.init_from_texts(all_phrases)
-model.train(all_phrases, 5, val_size=1_000)
+model.train(all_phrases, 25, val_size=1_000)
 
 phrases = all_phrases[:100]
 
