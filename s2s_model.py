@@ -18,22 +18,6 @@ seed(1)
 from tensorflow.random import set_seed
 set_seed(2)
 
-
-def chunkify(lst,n):
-  return [lst[i::n] for i in range(n)]
-
-def misspelled_gen(phrases, batch_size, noise, misspellings_count,
-                  max_seq_length):
-  gen = batcher(phrases, batch_size)
-  for batch in gen:
-    misspelled, correct = create_misspellings(batch,
-                                      noise, misspellings_count,
-                                      max_seq_length)
-    mis_chunks = chunkify(misspelled, misspellings_count + 1)
-    cor_chunks = chunkify(correct, misspellings_count + 1)
-
-    yield from zip(mis_chunks, cor_chunks)
-
 class S2SModel:
     BATCH_SIZE = 1000
     OPTIMIZER = 'adam'
