@@ -7,17 +7,17 @@ mpl.style.use('seaborn')
 
 
 def read_data(fname, delimiter="\n"):
-    """Helper reading a file with the input and 
+    """Helper reading a file with the input and
     target texts.
     Returns a tuple with 2 lists of phrases (input, target)"""
     input_phrases = []
     target_phrases = []
     with open(fname, 'r', encoding='utf-8') as f:
         lines = f.read().split(delimiter)
-    
+
         for line in lines:
             pair = line.split('\t')
-            if len(pair) !=2: continue 
+            if len(pair) !=2: continue
 
             input_text, target_text = pair
             input_phrases.append(input_text)
@@ -31,7 +31,7 @@ def load_preprocessed(data_path, max_len):
     with open(data_path) as f:
         lines = f.readlines()
     lines = text_preprocess(lines)
-    # allow only for a limited count of 
+    # allow only for a limited count of
     allowed_chars = set(' !"#$%&\'()+,-./0123456789:;?[]_`abcdefghijklmnopqrstuvwxyz{}')
     selected = []
     for l in lines:
@@ -44,7 +44,7 @@ def load_preprocessed(data_path, max_len):
 
 def wrap_with_delims(texts, start='\t', end='\n'):
     """Helper wrapping the input texts with the start
-    and and end sequence delimiters.""" 
+    and and end sequence delimiters."""
     return [start + t + end for t in texts]
 
 def text_preprocess(texts):
@@ -60,8 +60,11 @@ def text_preprocess(texts):
 #spelling
 
 CHARS = list("abcdefghijklmnopqrstuvwxyz .")
-def add_noise_to_string(a_string, amount_of_noise):
-    """Add some artificial spelling mistakes to the string"""
+def add_noise_to_string(string, amount_of_noise):
+    """Add some artificial spelling mistakes to the string
+    the string will have random noise, but will always be changed.
+    """
+    a_string = string
     # Assume no errors on strings of 1 or 2 chars
     if len(a_string) <= 2: return a_string
     # The probability for each permutation (assume equal)
