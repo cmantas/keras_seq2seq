@@ -16,7 +16,9 @@ def misspelled_gen(phrases, batch_size, noise, misspellings_count, max_seq_lengt
         mis_chunks = chunkify(misspelled, misspellings_count + 1)
         cor_chunks = chunkify(correct, misspellings_count + 1)
 
-        yield from zip(mis_chunks, cor_chunks)
+        generated = list(zip(mis_chunks, cor_chunks))
+        shuffle(generated)
+        yield from generated
 
 
 class SpellingModel(S2SModel):
