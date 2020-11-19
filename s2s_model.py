@@ -96,6 +96,9 @@ class S2SModel:
         LSTM(latent_dim, return_sequences=True),
         input_shape=(output_len, token_count)
       )
+
+      dropout = Dropout(.05)
+
       # ~decoder
       decoder = Bidirectional(
         LSTM(latent_dim, return_sequences=True)
@@ -104,7 +107,7 @@ class S2SModel:
 
 
       model = Sequential(
-        [one_hot, encoder, decoder, time_dist]
+        [one_hot, encoder, dropout, decoder, time_dist]
       )
 
       model.compile(loss=self.LOSS_FN,
