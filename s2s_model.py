@@ -97,7 +97,7 @@ class S2SModel:
         input_shape=(output_len, token_count)
       )
 
-      dropout = Dropout(.05)
+#      dropout = Dropout(.05)
 
       # ~decoder
       decoder = Bidirectional(
@@ -107,7 +107,9 @@ class S2SModel:
 
 
       model = Sequential(
-        [one_hot, encoder, dropout, decoder, time_dist]
+        [one_hot, encoder,
+         #dropout,
+         decoder, decoder, time_dist]
       )
 
       model.compile(loss=self.LOSS_FN,
