@@ -20,7 +20,8 @@ model.init_from_texts(texts)
 
 print(model.vectorize_output_batch(texts[:2]))
 
-model.train(texts, 100, verbose=2)
+model.train(texts, 50, verbose=2)
+model.model.summary()
 
 phrases = texts[:10]
 
