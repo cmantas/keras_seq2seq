@@ -94,12 +94,12 @@ class S2SModel:
           self.one_hot_layer(token_count),
           Bidirectional(
               LSTM(latent_dim, return_sequences=True,
-                   activation='relu'),
+                   activation='tanh'),
               input_shape=(output_len, token_count),
           ),
           Bidirectional(
               LSTM(latent_dim, return_sequences=True,
-                   activation='relu')
+                   activation='tanh')
           ),
           TimeDistributed(
               Dense(token_count, activation='softmax')
