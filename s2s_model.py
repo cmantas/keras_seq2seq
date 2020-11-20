@@ -136,6 +136,9 @@ class S2SModel:
         texts, test_size=val_size
       )
 
+      print(f"Training on {len(train_txts)} examples,"\
+            f"validating on {len(test_txts)}")
+
       gen = self.training_gen(texts)
 
       hist = self.model.fit(
