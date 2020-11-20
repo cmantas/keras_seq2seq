@@ -90,27 +90,24 @@ class S2SModel:
       token_count = len(self.tokenizer.word_index)
       output_len = self.max_seq_length
 
-      one_hot = self.one_hot_layer(token_count)
+      layers = [
+          self.one_hot_layer(token_count),
+          Bidirectional(
+              LSTM(latent_dim, return_sequences=True,
+                   activation='relu'),
+              input_shape=(output_len, token_count),
+          ),
+          Bidirectional(
+              LSTM(latent_dim, return_sequences=True,
+                   activation='relu')
+          ),
+          TimeDistributed(
+              Dense(token_count, activation='softmax')
+          )
+      ]
 
-      encoder = Bidirectional(
-        LSTM(latent_dim, return_sequences=True),
-        input_shape=(output_len, token_count)
-      )
 
-#      dropout = Dropout(.05)
-
-      # ~decoder
-      decoder = Bidirectional(
-        LSTM(latent_dim, return_sequences=True)
-      )
-      time_dist = Dense(token_count, activation='softmax')
-
-
-      model = Sequential(
-        [one_hot, encoder,
-         #dropout,
-         decoder, decoder, time_dist]
-      )
+      model = Sequential(layers)
 
       model.compile(loss=self.LOSS_FN,
                     optimizer=self.OPTIMIZER,
