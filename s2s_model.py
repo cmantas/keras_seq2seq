@@ -12,11 +12,16 @@ import keras.backend as K
 from keras.preprocessing.text import Tokenizer
 from keras.utils import to_categorical
 from keras.preprocessing.sequence import pad_sequences
+from keras.metrics import sparse_categorical_accuracy
 
 from numpy.random import seed
 seed(1)
 from tensorflow.random import set_seed
 set_seed(2)
+
+# dirty hack for renaming the accuracy metric
+def acc(y, y_h):
+    return sparse_categorical_accuracy(y, y_h)
 
 def seq_acc(y_true, y_pred):
     a,b,_1 = y_true.shape
@@ -113,7 +118,7 @@ class S2SModel:
       model.compile(loss=self.LOSS_FN,
                     optimizer=self.OPTIMIZER,
                     run_eagerly=True,
-                    metrics=['sparse_categorical_accuracy', seq_acc])
+                    metrics=[acc, seq_acc])
       return model
 
     def steps_per_epoch(self, size):
