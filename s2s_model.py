@@ -39,6 +39,7 @@ class S2SModel:
         self.num_encoder_tokens = None
         self.tokenizer = None
         self.latent_dim = latent_dim
+        self.hist = None
 
     def init_from_texts(self, texts):
         # \t and \n are our [START] and [END] delimiters.
@@ -141,7 +142,7 @@ class S2SModel:
 
       gen = self.training_gen(texts)
 
-      hist = self.model.fit(
+      self.hist = self.model.fit(
           gen, validation_data=self.validation_data(test_txts),
           steps_per_epoch=self.steps_per_epoch(len(texts)),
           verbose=verbose, max_queue_size=1, epochs=epochs
