@@ -125,7 +125,7 @@ class S2SModel:
         return (val_X, val_Y)
 
     def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
-      if init || self.model is None:
+      if init or self.model is None:
         self.model = self.create_model()
 
       if len(texts) < 100:
