@@ -130,8 +130,8 @@ class S2SModel:
         val_Y = self.vectorize_output_batch(val_texts)
         return (val_X, val_Y)
 
-    def train(self, texts, epochs=1, init=True, val_size=None, verbose=1):
-      if init:
+    def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
+      if init || self.model is None:
         self.model = self.create_model()
 
       if len(texts) < 100:
