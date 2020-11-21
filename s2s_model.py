@@ -41,7 +41,6 @@ class S2SModel:
         self.max_seq_length = max_string_length #+ 3
         self.token_idx = None
         self.inverse_token_index = None
-        self.num_encoder_tokens = None
         self.tokenizer = None
         self.latent_dim = latent_dim
         self.hist = None
@@ -49,11 +48,6 @@ class S2SModel:
     def init_from_texts(self, texts):
         # \t and \n are our [START] and [END] delimiters.
         # With this trick we are adding them to the token index
-        self.token_idx = token_index(texts + ['\t', '\n'])
-        self.inverse_token_index =  {
-          v: k for k, v in self.token_idx.items()
-        }
-        self.num_encoder_tokens = len(self.token_idx)
         self.tokenizer = Tokenizer(char_level=True)
         self.tokenizer.fit_on_texts(texts + ['\t', '\n'])
 
