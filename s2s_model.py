@@ -43,6 +43,7 @@ class S2SModel:
         self.inverse_token_index = None
         self.tokenizer = None
         self.latent_dim = latent_dim
+        self.model = None
         self.hist = None
 
     def init_from_texts(self, texts):
