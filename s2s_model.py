@@ -115,7 +115,7 @@ class S2SModel:
                     optimizer=self.OPTIMIZER,
                     run_eagerly=True,
                     metrics=[acc, seq_acc])
-      return model
+      self.model = model
 
     def steps_per_epoch(self, size):
         return ceil(size / self.BATCH_SIZE)
@@ -127,7 +127,7 @@ class S2SModel:
 
     def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
       if init or self.model is None:
-        self.model = self.create_model()
+        self.create_model()
 
       if len(texts) < 100:
         val_size = 0
