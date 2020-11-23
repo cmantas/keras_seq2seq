@@ -17,27 +17,142 @@ import importlib
 from importlib import reload
 from scipy.stats import hmean
 
-batch_size = 512  # Batch size for training.
-latent_dim = 512  # Latent dimensionality of the encoding space.
-num_samples =200000 # Number of samples to train on.
+class MyModel:
+    BATCH_SIZE = 512
+    def __init__(self, max_encoder_seq_length=25, latent_dim = 128):
+        self.max_encoder_seq_length = max_encoder_seq_length
+        self.max_decoder_seq_length = max_encoder_seq_length + 4
+        self.token_index = token_index
+        self.latent_dim = 128
+
+
+    def init_from_texts(self, texts):
+        self.token_index = token_index(texts + ['\t','\n'])
+
+    def vectorize_batch(self, texts, seq_len, offset=False, dtype='int'):
+        num_tokens = len(self.token_index)
+        example_count = len(texts)
+
+        start_t = 1 if offset else 0
+        # Generate 1-hot encoding
+        data = np.zeros((example_count, seq_len, num_tokens),
+                        dtype=dtype)
+
+        for i, text in enumerate(texts):
+            for t, char in enumerate(text[start_t:]):
+                idx = self.token_index[char]
+                data[i, t, idx] = 1.
+        return data
+
+    def encoder_batch(self, texts):
+        return self.vectorize_batch(texts, self.max_encoder_seq_length)
+
+    def decoder_batch(self, texts, offset=False):
+        return self.vectorize_batch(texts, self.max_decoder_seq_length, offset)
+
+    def create_model(self):
+        num_tokens = len(self.token_index)
+        # Define an input sequence and process it.
+        encoder_inputs = Input(shape=(None, num_tokens),
+                               name='encoder_inputs')
+        encoder = LSTM(self.latent_dim, return_state=True, name='encoder',
+                       dropout=.05)
+        encoder_outputs, state_h, state_c = encoder(encoder_inputs)
+        # We discard `encoder_outputs` and only keep the states.
+        encoder_states = [state_h, state_c]
+
+        # Set up the decoder, using `encoder_states` as initial state.
+        decoder_inputs = Input(shape=(None, num_tokens), name='decoder_inputs')
+        # We set up our decoder to return full output sequences,
+        # and to return internal states as well. We don't use the
+        # return states in the training model, but we will use them in inference.
+        decoder_lstm = LSTM(self.latent_dim, return_sequences=True,
+                            return_state=True, name='decoder_lstm',
+                            dropout=.05)
+        decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
+                                             initial_state=encoder_states)
+        decoder_dense = Dense(num_tokens, activation='softmax',
+                              name='decoder_dense')
+        decoder_outputs = decoder_dense(decoder_outputs)
+
+        # Define the model that will turn
+        # `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
+        model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+        # Next: inference mode (sampling).
+        # Here's the drill:
+        # 1) encode input and retrieve initial decoder state
+        # 2) run one step of decoder with this initial state
+        # and a "start of sequence" token as target.
+        # Output will be the next target token
+        # 3) Repeat with the current target token and current states
+
+        # Define sampling models
+        encoder_model = Model(encoder_inputs, encoder_states)
+
+        decoder_state_input_h = Input(shape=(self.latent_dim,),
+                                      name='decoder_input_h')
+        decoder_state_input_c = Input(shape=(self.latent_dim,),
+                                      name='decoder_input_c')
+        decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
+        decoder_outputs, state_h, state_c = decoder_lstm(
+            decoder_inputs, initial_state=decoder_states_inputs
+        )
+        decoder_states = [state_h, state_c]
+        decoder_outputs = decoder_dense(decoder_outputs)
+
+        decoder_model = Model(
+            [decoder_inputs] + decoder_states_inputs,
+            [decoder_outputs] + decoder_states
+        )
+
+        model.compile(optimizer='adam', loss='categorical_crossentropy',
+                      metrics=['accuracy'])
+        self.model = model
+        self.encoder_model = encoder_model
+        self.decoder_model = decoder_model
+
+    def train(self, texts, epochs=1):
+        target_texts = wrap_with_delims(texts)
+        encoder_input_data = self.encoder_batch(texts)
+        decoder_input_data = self.decoder_batch(target_texts)
+        # same as decoder input data, but offset by one
+        decoder_output_data = self.decoder_batch(target_texts, True)
+        X = [encoder_input_data, decoder_input_data]
+        Y = decoder_output_data
+        self.model.fit(X, Y, epochs=epochs, batch_size=self.BATCH_SIZE)
+
+
+
+
+mm = MyModel(3, 128)
+mm.init_from_texts(['a','b'])
+print("input")
+print(mm.encoder_batch(['aaa','bbb']))
+print("output")
+print(mm.decoder_batch(['aaa','bbb'], True))
+mm.create_model()
+mm.train(['aaa', 'bbb'])
+
+
+num_samples = 20_000 # Number of samples to train on.
 # Path to the datatxt file on disk.
 data_path = 'data/sentences.txt'
 
-noise = .05
-misspellings_count = 2
-chunk_size = 10000
+max_texts_len = 25
 
-optimizer= 'adam'
-loss_fn='categorical_crossentropy'
+all_texts = load_preprocessed(data_path, max_texts_len)
+input_texts = all_texts[:num_samples]
 
-# Hand-pick maximum sequence lengths
-max_encoder_seq_length = 25
-max_decoder_seq_length = 30
+mm = MyModel(max_texts_len, 128)
+mm.init_from_texts(input_texts)
+mm.create_model()
+mm.train(input_texts, 50)
+
+exit()
 
 
-all_phrases = load_preprocessed(data_path, max_encoder_seq_length)
-input_phrases = all_phrases[:num_samples]
-test_phrases = all_phrases[num_samples:]
+test_phrases = all_phrases[-100:]
 print('All phrases in dataset: ', len(all_phrases))
 print('Training phrases: ', len(input_phrases))
 print('Test phrases: ', len(test_phrases))
@@ -307,21 +422,6 @@ def evaluate_vect(input_texts, target_texts, model, training_vectorizer):
 misspelled = [add_noise_to_string(p, .05) for p in test_phrases[:1000]]
 evaluate_vect(misspelled, test_phrases[:1000],
               model, training_vectorizer)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # find max encoder seq legth
