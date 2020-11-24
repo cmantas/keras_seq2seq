@@ -56,6 +56,9 @@ class S2SModel:
       seqs = self.tokenizer.texts_to_sequences(texts)
       return pad_sequences(seqs, self.max_seq_length, padding='post')
 
+    def vectorize_input_batch(self, texts):
+        return self.vectorize_batch(texts)
+
     def vectorize_output_batch(self, texts):
       #texts = wrap_with_delims(texts)
       seqs = self.vectorize_batch(texts)
@@ -71,7 +74,7 @@ class S2SModel:
         while True:
             Random().shuffle(texts)
             for batch in batcher(texts, self.BATCH_SIZE):
-              X = self.vectorize_batch(batch)
+              X = self.vectorize_input_batch(batch)
               Y = self.vectorize_output_batch(batch)
               yield (X, Y)
 
