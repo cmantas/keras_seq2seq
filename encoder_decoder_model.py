@@ -2,46 +2,42 @@ from s2s_model import *
 
 class EEModel(S2SModel):
     def create_model(self, latent_dim=128):
-        encoder_input = Input(shape=(self.max_seq_length,), dtype='uint8')
-        decoder_input = Input(shape=(self.max_seq_length,), dtype='uint8')
-
         token_count = len(self.tokenizer.word_index)
+
+        # Encoder
+        encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
         embedding = self.one_hot_layer(token_count)
-        # Embedding(input_dim=token_count, output_dim=token_count,
-        #                        input_length=None, trainable=False,
-        #                        embeddings_initializer='identity',mask_zero=True)
         lstm_input = embedding(encoder_input)
         encoder = LSTM(latent_dim, return_sequences=False)(lstm_input)
 
-        # decoder = Embedding(input_dim=token_count, output_dim=token_count,
-        #                     input_length=None, mask_zero=True)(decoder_input)
-        decoder = self.one_hot_layer(token_count)(decoder_input)
+        # Decoder
+        decoder_input = Input(shape=(self.max_seq_length), dtype='int32')
+        one_hot = self.one_hot_layer(token_count)
+        decoder_data = one_hot(decoder_input)
 
-        decoder = LSTM(
-            latent_dim, return_sequences=True
-        )(decoder, initial_state=[encoder, encoder])
+        decoder = LSTM(latent_dim, return_sequences=True)
+        decoder_output = decoder(decoder_data, initial_state=[encoder, encoder])
 
-        decoder = TimeDistributed(Dense(token_count, activation="softmax"))(decoder)
+        # Dense
+        t_dense = TimeDistributed(Dense(token_count, activation="softmax"))
+        output = t_dense(decoder_output)
 
-        model = Model(inputs=[encoder_input, decoder_input], outputs=[decoder])
-        model.compile(optimizer='adam', loss='categorical_crossentropy')
+        model = Model(inputs=[encoder_input, decoder_input], outputs=[output])
+        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
 
         self.model=model
 
     def vectorize_sketo(self, texts):
-        token_count = len(self.tokenizer.word_index)
-        encoded_input  = self.vectorize_batch(texts)
+        encoder_input = self.vectorize_batch(texts)
+
         encoded_output = self.vectorize_batch(texts)
-
-
-        encoder_input = encoded_input
         decoder_input = np.zeros_like(encoded_output)
         decoder_input[:, 1:] = encoded_output[:, :-1]
         #decoder_input[:, 0] = self.tokenizer.word_index['\t']
 
-        decoder_output = np.eye(token_count)[encoded_output.astype('int')]
-        X = [encoder_input, decoder_input]
-        Y = [decoder_output]
+        decoder_output = encoded_output
+        X = (encoder_input, decoder_input)
+        Y = decoder_output
         return(X, Y)
 
     def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
@@ -51,7 +47,7 @@ class EEModel(S2SModel):
         X, Y = self.vectorize_sketo(texts)
 
         self.hist = self.model.fit(
-            X, Y, epochs=epochs, batch_size = 10
+            X, Y, epochs=epochs, batch_size = 100
         )
 
     def predict(self, texts):
