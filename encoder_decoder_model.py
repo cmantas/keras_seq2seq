@@ -23,7 +23,8 @@ class EEModel(S2SModel):
         output = t_dense(decoder_output)
 
         model = Model(inputs=[encoder_input, decoder_input], outputs=[output])
-        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy')
+        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+                      metrics=['sparse_categorical_accuracy'])
 
         self.model=model
 
