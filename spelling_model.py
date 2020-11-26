@@ -1,4 +1,5 @@
 from s2s_model import S2SModel
+from s2s_transformer_model import S2STransformerModel
 from helpers import *
 from math import ceil
 
@@ -25,6 +26,7 @@ class SpellingModel(S2SModel):
     MISSPELLING_RATIO = 3
 
     def training_gen(self, texts):
+        print("MISSPELLINGS")
         while True:
             Random().shuffle(texts)
             mis_gen = misspelled_gen(
@@ -48,3 +50,6 @@ class SpellingModel(S2SModel):
         val_X = self.vectorize_batch(wrong_texts)
         val_Y = self.vectorize_output_batch(right_texts)
         return (val_X, val_Y)
+
+class SpellingTransformer(SpellingModel, S2STransformerModel):
+    pass
