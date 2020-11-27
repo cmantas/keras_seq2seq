@@ -90,21 +90,21 @@ class S2SModel:
       # maybe: one_hot(K.cast(x,'uint8'), token_count))
       return Lambda(lambda x:K.one_hot(x, token_count))
 
-    def create_model(self, latent_dim = 128):
+    def create_model(self):
       token_count = len(self.tokenizer.word_index)
       output_len = self.max_seq_length
 
       layers = [
           self.one_hot_layer(token_count),
           Bidirectional(
-              LSTM(latent_dim, return_sequences=True),
+              LSTM(self.latent_dim, return_sequences=True),
               input_shape=(output_len, token_count),
           ),
           Bidirectional(
-              LSTM(latent_dim, return_sequences=True)
+              LSTM(self.latent_dim, return_sequences=True)
           ),
           Bidirectional(
-              LSTM(latent_dim, return_sequences=True)
+              LSTM(self.latent_dim, return_sequences=True)
           ),
           TimeDistributed(
               Dense(token_count, activation='softmax')
