@@ -17,6 +17,9 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.metrics import sparse_categorical_accuracy
 
 from s2s_model import *
+from spelling_model import SpellingModel
+
+# https://www.kaggle.com/fareise/multi-head-self-attention-for-text-classification
 class MultiHeadSelfAttention(Layer):
     def __init__(self, embed_dim, num_heads=8):
         super(MultiHeadSelfAttention, self).__init__()
@@ -115,7 +118,10 @@ class S2STransformerModel(S2SModel):
       embedding_layer = TokenAndPositionEmbedding(output_len, token_count, token_count)
       x = embedding_layer(inputs)
       # embed_dim, num_heads, ff_dim, rate=0.1):
-      transformer_block = TransformerBlock(token_count, 3, self.latent_dim, 0)
+      # TMP: token count as num_heads
+      transformer_block = TransformerBlock(token_count, token_count, self.latent_dim, 0)
+      x = transformer_block(x)
+      transformer_block = TransformerBlock(token_count, token_count, self.latent_dim, 0)
       x = transformer_block(x)
 
       t_dense = TimeDistributed(Dense(token_count, activation="softmax"))
@@ -139,3 +145,7 @@ class S2STransformerModel(S2SModel):
         out_txts = [self.seq_to_text(seq) for seq in preds]
 
         return out_txts[0] if wrap else out_txts
+
+
+class SpellingTransformer(SpellingModel, S2STransformerModel):
+    pass
