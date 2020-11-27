@@ -33,7 +33,7 @@ def seq_acc(y_true, y_pred):
 class S2SModel:
     BATCH_SIZE = 1000
     LATENT_DIM = 128
-    OPTIMIZER = 'adam'
+    OPTIMIZER = 'nadam'
     LOSS_FN = 'sparse_categorical_crossentropy'
 
     def __init__(self, max_string_length=25, latent_dim=LATENT_DIM):
