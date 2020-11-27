@@ -1,4 +1,8 @@
 from spelling_model import *
+from s2s_transformer_model import *
+from s2s_attention_model import *
+
+mclass = SpellingAttention #SpellingTransformer
 
 def acc(src, trgt):
     pairs = list(zip(src,trgt))
@@ -17,9 +21,9 @@ max_len = 20
 all_phrases = load_preprocessed('data/sentences.txt', max_len)
 all_phrases = all_phrases[:30_000]
 BATCH_SIZE = 250
-model = SpellingModel(max_len, 256)
+model = mclass(max_len, 256)
 model.init_from_texts(all_phrases)
-model.train(all_phrases, 25, val_size=1_000)
+model.train(all_phrases, 500, val_size=2_000)
 
 phrases = all_phrases[:100]
 
