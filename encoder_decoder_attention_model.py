@@ -1,5 +1,5 @@
 from encoder_decoder_model import *
-from keras.layers import dot, concatenate
+from keras.layers import dot, concatenate, Attention
 
 class EDAModel(EEModel):
     def create_model(self, latent_dim=128):
@@ -22,13 +22,15 @@ class EDAModel(EEModel):
             64, return_sequences=True, unroll=True
         )(decoder_data, initial_state=[encoder_last, encoder_last])
 
-        attention = dot([decoder, encoder], axes=[2, 2])
-        attention = Activation('softmax', name='attention')(attention)
+        #attention = dot([decoder, encoder], axes=[2, 2])
+        #attention = Activation('softmax', name='attention')(attention)
 
-        context = dot([attention, encoder], axes=[2,1])
-        print('context', context)
+        #context = dot([attention, encoder], axes=[2,1])
+        #print('context', context)
 
-        decoder_combined_context = concatenate([context, decoder])
+        #decoder_combined_context = concatenate([context, decoder])
+
+        decoder_combined_context = Attention()([decoder, encoder])
 
         output = TimeDistributed(Dense(64, activation="tanh"))(decoder_combined_context)
         output = TimeDistributed(Dense(token_count, activation="softmax"))(output)
