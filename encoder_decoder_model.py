@@ -38,12 +38,11 @@ class EDModel(S2SModel):
     def vectorize_sketo(self, texts):
         encoder_input = self.vectorize_batch(texts)
 
-        encoded_output = self.vectorize_batch(texts)
-        decoder_input = np.zeros_like(encoded_output)
-        decoder_input[:, 1:] = encoded_output[:, :-1]
+        decoder_input = np.zeros_like(encoder_input)
+        decoder_input[:, 1:] = encoder_input[:, :-1]
         #decoder_input[:, 0] = self.tokenizer.word_index['\t']
 
-        decoder_output = encoded_output
+        decoder_output = self.vectorize_batch(texts)
         X = (encoder_input, decoder_input)
         Y = decoder_output
         return(X, Y)
@@ -55,7 +54,7 @@ class EDModel(S2SModel):
         X, Y = self.vectorize_sketo(texts)
 
         self.hist = self.model.fit(
-            X, Y, epochs=epochs, batch_size = 100
+            X, Y, epochs=epochs, verbose=verbose, batch_size=100
         )
 
     def predict(self, texts):
