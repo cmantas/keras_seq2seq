@@ -1,8 +1,10 @@
 from spelling_model import *
 from s2s_transformer_model import *
-from s2s_attention_model import *
+from encoder_decoder_model import EDSpellModel
+from encoder_decoder_attention_model import EDASpellModel
 
-mclass = SpellingAttention #SpellingTransformer
+#mclass = EDSpellModel #SpellingAttention #SpellingTransformer
+mclass = EDASpellModel
 
 def acc(src, trgt):
     pairs = list(zip(src,trgt))
@@ -23,7 +25,10 @@ all_phrases = all_phrases[:30_000]
 BATCH_SIZE = 250
 model = mclass(max_len, 256)
 model.init_from_texts(all_phrases)
-model.train(all_phrases, 500, val_size=2_000)
+try:
+    model.train(all_phrases, 40, val_size=2_000)
+except KeyboardInterrupt:
+    print("\n\nUnpacient are we?")
 
 phrases = all_phrases[:100]
 

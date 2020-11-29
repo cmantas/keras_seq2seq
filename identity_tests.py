@@ -18,8 +18,8 @@ def report(model, phrases, targets, legend='Report'):
 
 texts = ['abc', 'bcd', 'cde', 'efg'] * 10
 
-# model_class = EDAModel
 model_class = EDModel
+#model_class = EDAModel
 #model_class = S2SModel
 
 model = model_class(5)
@@ -27,7 +27,7 @@ model.init_from_texts(texts)
 
 print(model.vectorize_output_batch(texts[:2]))
 
-model.train(texts, 100, verbose=0)
+model.train(texts, 200, verbose=1)
 model.model.summary()
 
 phrases = texts[:10]
@@ -44,7 +44,13 @@ all_phrases = all_phrases[:30_000]
 BATCH_SIZE = 250
 model = model_class(max_len)
 model.init_from_texts(all_phrases)
-model.train(all_phrases, 50, val_size=1_000)
+
+try:
+    model.train(all_phrases, 40, val_size=1_000)
+except KeyboardInterrupt:
+    print("\n\nUnpacient are we?")
+
+
 
 phrases = all_phrases[:10]
 
