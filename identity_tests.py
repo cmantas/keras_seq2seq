@@ -18,7 +18,8 @@ def report(model, phrases, targets, legend='Report'):
 
 texts = ['abc', 'bcd', 'cde', 'efg'] * 10
 
-model_class = EDAModel
+# model_class = EDAModel
+model_class = EDModel
 #model_class = S2SModel
 
 model = model_class(5)

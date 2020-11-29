@@ -1,7 +1,7 @@
 from encoder_decoder_model import *
 from keras.layers import dot, concatenate, Attention
 
-class EDAModel(EEModel):
+class EDAModel(EDModel):
     def create_model(self, latent_dim=128):
         token_count = len(self.tokenizer.word_index)
 

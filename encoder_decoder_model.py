@@ -1,29 +1,36 @@
 from s2s_model import *
 
-class EEModel(S2SModel):
+class EDModel(S2SModel):
     def create_model(self, latent_dim=128):
         token_count = len(self.tokenizer.word_index)
+        # Inputs
+        encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
+        decoder_input = Input(shape=(self.max_seq_length), dtype='int32')
+
+        # Encoder Input Data: we are not using embeddings but simply one-hot
+        # char vectors
+        one_hot_enc = self.one_hot_layer(token_count)
+        lstm_input = one_hot_enc(encoder_input)
 
         # Encoder
-        encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
-        embedding = self.one_hot_layer(token_count)
-        lstm_input = embedding(encoder_input)
-        encoder = LSTM(latent_dim, return_sequences=False)(lstm_input)
+        encoder = LSTM(latent_dim, return_sequences=False)
+        encoder_output = encoder(lstm_input)
 
-        # Decoder
-        decoder_input = Input(shape=(self.max_seq_length), dtype='int32')
-        one_hot = self.one_hot_layer(token_count)
-        decoder_data = one_hot(decoder_input)
+        # Decoder Input Data
+        one_hot_dec = self.one_hot_layer(token_count)
+        decoder_data = one_hot_dec(decoder_input)
 
         decoder = LSTM(latent_dim, return_sequences=True)
-        decoder_output = decoder(decoder_data, initial_state=[encoder, encoder])
+        decoder_output = decoder(
+            decoder_data, initial_state=[encoder_output, encoder_output]
+        )
 
         # Dense
         t_dense = TimeDistributed(Dense(token_count, activation="softmax"))
         output = t_dense(decoder_output)
 
         model = Model(inputs=[encoder_input, decoder_input], outputs=[output])
-        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+        model.compile(optimizer=self.OPTIMIZER, loss=self.LOSS_FN,
                       metrics=['sparse_categorical_accuracy'])
 
         self.model=model
@@ -53,14 +60,14 @@ class EEModel(S2SModel):
 
     def predict(self, texts):
 
-        (encoder_input, decoder_input), _= self.vectorize_sketo(texts)
-        preds = self.model.predict([encoder_input, decoder_input]).argmax(axis=2)
+        (encoder_input, decoder_input), _ = self.vectorize_sketo(texts)
+        preds = self.model.\
+            predict([encoder_input, decoder_input]). \
+            argmax(axis=2)
 
         return [self.seq_to_text(seq) for seq in preds]
 
-
-        print(preds.shape)
-        exit()
+        # TODO: incorporate this ...
         for i in range(1, self.max_seq_length):
             output = self.model.predict([encoder_input, decoder_input]).argmax(axis=2)
             decoder_input[:, i] = output[:, i]
