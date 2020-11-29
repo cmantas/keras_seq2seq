@@ -1,15 +1,15 @@
 from s2s_model import *
+from spelling_model import SpellingModel
 
 class EDModel(S2SModel):
     def create_model(self, latent_dim=128):
-        token_count = len(self.tokenizer.word_index)
         # Inputs
         encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
         decoder_input = Input(shape=(self.max_seq_length), dtype='int32')
 
         # Encoder Input Data: we are not using embeddings but simply one-hot
         # char vectors
-        one_hot_enc = self.one_hot_layer(token_count)
+        one_hot_enc = self.one_hot_layer()
         lstm_input = one_hot_enc(encoder_input)
 
         # Encoder
@@ -17,7 +17,7 @@ class EDModel(S2SModel):
         encoder_output = encoder(lstm_input)
 
         # Decoder Input Data
-        one_hot_dec = self.one_hot_layer(token_count)
+        one_hot_dec = self.one_hot_layer()
         decoder_data = one_hot_dec(decoder_input)
 
         decoder = LSTM(latent_dim, return_sequences=True)
@@ -26,7 +26,7 @@ class EDModel(S2SModel):
         )
 
         # Dense
-        t_dense = TimeDistributed(Dense(token_count, activation="softmax"))
+        t_dense = self.output_layer()
         output = t_dense(decoder_output)
 
         model = Model(inputs=[encoder_input, decoder_input], outputs=[output])

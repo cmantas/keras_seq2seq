@@ -62,6 +62,7 @@ class S2SModel:
         self.hist = None
 
     def init_from_texts(self, texts):
+        print(f"Creating a {self.__class__.__name__} Model")
         # \t and \n are our [START] and [END] delimiters.
         # With this trick we are adding them to the token index
         self.tokenizer = Tokenizer(char_level=True)
@@ -103,6 +104,11 @@ class S2SModel:
         # maybe: one_hot(K.cast(x,'uint8'), token_count))
         return Lambda(lambda x: K.one_hot(x, self.token_count))
 
+    def output_layer(self):
+        return TimeDistributed(
+            Dense(self.token_count, activation='softmax')
+        )
+
     def create_model(self):
         output_len = self.max_seq_length
 
@@ -114,7 +120,7 @@ class S2SModel:
             ),
             Bidirectional(LSTM(self.latent_dim, return_sequences=True)),
             Bidirectional(LSTM(self.latent_dim, return_sequences=True)),
-            TimeDistributed(Dense(self.token_count, activation="softmax")),
+            self.output_layer()
         ]
 
         model = Sequential(layers)

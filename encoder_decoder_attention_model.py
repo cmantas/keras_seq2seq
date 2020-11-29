@@ -3,20 +3,18 @@ from keras.layers import dot, concatenate, Attention
 
 class EDAModel(EDModel):
     def create_model(self, latent_dim=128):
-        token_count = len(self.tokenizer.word_index)
-
         # Encoder
         encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
         decoder_input = Input(shape=(self.max_seq_length), dtype='int32')
 
-        embedding = self.one_hot_layer(token_count)
+        embedding = self.one_hot_layer()
         lstm_input = embedding(encoder_input)
 
         encoder = LSTM(64, return_sequences=True, unroll=True)(lstm_input)
         encoder_last = encoder[:,-1,:]
 
 
-        one_hot = self.one_hot_layer(token_count)
+        one_hot = self.one_hot_layer()
         decoder_data = one_hot(decoder_input)
         decoder = LSTM(
             64, return_sequences=True, unroll=True
@@ -33,10 +31,11 @@ class EDAModel(EDModel):
         decoder_combined_context = Attention()([decoder, encoder])
 
         output = TimeDistributed(Dense(64, activation="tanh"))(decoder_combined_context)
-        output = TimeDistributed(Dense(token_count, activation="softmax"))(output)
+        output = self.output_layer()(output)
 
         model = Model(inputs=[encoder_input, decoder_input], outputs=[output])
-        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+        model.compile(optimizer=self.OPTIMIZER,
+                      loss=self.LOSS_FN,
                       metrics=['sparse_categorical_accuracy'])
 
         self.model=model
