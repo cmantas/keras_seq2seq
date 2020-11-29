@@ -39,3 +39,6 @@ class EDAModel(EDModel):
                       metrics=['sparse_categorical_accuracy'])
 
         self.model=model
+
+class EDASpellModel(EDAModel, EDSpellModel):
+    pass
