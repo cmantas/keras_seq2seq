@@ -21,7 +21,7 @@ def report(model, phrases, targets, legend='Report'):
 
 max_len = 20
 all_phrases = load_preprocessed('data/sentences.txt', max_len)
-all_phrases = all_phrases[:30_000]
+all_phrases = all_phrases[:50_000]
 BATCH_SIZE = 250
 model = mclass(max_len, 256)
 model.init_from_texts(all_phrases)

@@ -89,9 +89,7 @@ class S2SModel:
         while True:
             Random().shuffle(texts)
             for batch in batcher(texts, self.BATCH_SIZE):
-                X = self.vectorize_input_batch(batch)
-                Y = self.vectorize_output_batch(batch)
-                yield (X, Y)
+                yield self.vectorize_pairs(batch, batch)
 
     def one_hot_layer(self):
         # Alternatively, with an embedding layer:
@@ -136,10 +134,14 @@ class S2SModel:
     def steps_per_epoch(self, size):
         return ceil(size / self.BATCH_SIZE)
 
+    def vectorize_pairs(self, in_texts, out_texts):
+        X = self.vectorize_batch(in_texts)
+        Y = self.vectorize_output_batch(out_texts)
+        return (X, Y)
+
     def validation_data(self, val_texts):
-        val_X = self.vectorize_batch(val_texts)
-        val_Y = self.vectorize_output_batch(val_texts)
-        return (val_X, val_Y)
+        # For the identity model, return the same texts as output
+        return self.vectorize_pairs(val_texts, val_texts)
 
     def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
         if init or self.model is None:
