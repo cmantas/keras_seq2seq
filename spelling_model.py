@@ -32,10 +32,6 @@ class SpellingModel(S2SModel):
         return ceil(e_size / self.BATCH_SIZE)
 
     def validation_data(self, val_texts):
-        wrong_texts, right_texts = create_misspellings(
-            val_texts, .05, self.MISSPELLING_RATIO,
-            self.max_seq_length
-        )
-        val_X = self.vectorize_batch(wrong_texts)
-        val_Y = self.vectorize_output_batch(right_texts)
-        return (val_X, val_Y)
+        generated = self.generate_synthetic_pairs(val_texts)
+        miss, corr = zip(*generated) # unzip
+        return self.vectorize_pairs(miss, corr)
