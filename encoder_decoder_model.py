@@ -71,27 +71,4 @@ class EDModel(S2SModel):
 
 
 class EDSpellModel(EDModel, SpellingModel):
-    def vectorize(self, in_texts, out_texts):
-        encoder_input = self.vectorize_batch(in_texts)
-
-        decoder_input = np.zeros_like(encoder_input)
-        decoder_input[:, 1:] = encoder_input[:, :-1]
-        #decoder_input[:, 0] = self.tokenizer.word_index['\t']
-
-        decoder_output = self.vectorize_batch(out_texts)
-        X = (encoder_input, decoder_input)
-        Y = decoder_output
-        return(X, Y)
-
-    def training_gen(self, texts):
-        while True:
-            misspelled, correct = create_misspellings(
-                texts, .05, 3, self.max_seq_length
-            )
-
-            generated = list(zip(misspelled, correct))
-            Random(1).shuffle(generated)
-            for batch in batcher(generated, self.BATCH_SIZE):
-                miss, corr = zip(*batch) # unzip
-                X, Y = self.vectorize(miss, corr)
-                yield (X, Y)
+    pass
