@@ -31,11 +31,8 @@ class EDModel(S2SModel):
         t_dense = self.output_layer()
         output = t_dense(decoder_output)
 
-        model = Model(inputs=[encoder_input, decoder_input], outputs=[output])
-        model.compile(optimizer=self.OPTIMIZER, loss=self.LOSS_FN,
-                      metrics=['sparse_categorical_accuracy'])
-
-        self.model=model
+        self.model = Model(inputs=[encoder_input, decoder_input], outputs=[output])
+        self.compile_model()
 
     def vectorize_pairs(self, in_texts, out_texts):
         encoder_input = self.vectorize_batch(in_texts)
@@ -49,7 +46,7 @@ class EDModel(S2SModel):
         if out_texts is None:
             return X, None
 
-        decoder_output = self.vectorize_batch(out_texts)
+        decoder_output = self.vectorize_output_batch(out_texts)
         Y = decoder_output
         return(X, Y)
 

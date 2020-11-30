@@ -107,6 +107,13 @@ class S2SModel:
             Dense(self.token_count, activation='softmax')
         )
 
+    def compile_model(self):
+        self.model.compile(
+            loss=self.LOSS_FN, optimizer=self.OPTIMIZER,
+            run_eagerly=True,
+            metrics=[acc, seq_acc],
+        )
+
     def create_model(self):
         output_len = self.max_seq_length
 
@@ -121,15 +128,8 @@ class S2SModel:
             self.output_layer()
         ]
 
-        model = Sequential(layers)
-
-        model.compile(
-            loss=self.LOSS_FN,
-            optimizer=self.OPTIMIZER,
-            run_eagerly=True,
-            metrics=[acc, seq_acc],
-        )
-        self.model = model
+        self.model = Sequential(layers)
+        self.compile_model()
 
     def steps_per_epoch(self, size):
         return ceil(size / self.BATCH_SIZE)
