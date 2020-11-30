@@ -7,35 +7,25 @@ def chunkify(lst, n):
     return [lst[i::n] for i in range(n)]
 
 
-def misspelled_gen(phrases, batch_size, noise, misspellings_count, max_seq_length):
-    gen = batcher(phrases, batch_size)
-    for batch in gen:
-        misspelled, correct = create_misspellings(
-            batch, noise, misspellings_count, max_seq_length
-        )
-        mis_chunks = chunkify(misspelled, misspellings_count + 1)
-        cor_chunks = chunkify(correct, misspellings_count + 1)
-
-        generated = list(zip(mis_chunks, cor_chunks))
-        shuffle(generated)
-        yield from generated
-
-
 class SpellingModel(S2SModel):
     MISSPELLING_RATIO = 3
 
+    def generate_synthetic_pairs(self, texts, noise=.05):
+        misspelled, correct = create_misspellings(
+            texts, .05, self.MISSPELLING_RATIO, self.max_seq_length
+        )
+
+        generated = list(zip(misspelled, correct))
+        Random(1).shuffle(generated)
+        return generated
+
     def training_gen(self, texts):
-        print("MISSPELLINGS")
+        print(f"Generating Noisy texts on a ratio of 1/{self.MISSPELLING_RATIO}")
         while True:
-            Random().shuffle(texts)
-            mis_gen = misspelled_gen(
-                texts, self.BATCH_SIZE, 0.05, self.MISSPELLING_RATIO,
-                self.max_seq_length
-            )
-            for mis, cor in mis_gen:
-                X = self.vectorize_batch(mis)
-                Y = self.vectorize_output_batch(cor)
-                yield (X, Y)
+            generated = self.generate_synthetic_pairs(texts)
+            for batch in batcher(generated, self.BATCH_SIZE):
+                miss, corr = zip(*batch) # unzip
+                yield self.vectorize_pairs(miss, corr)
 
     def steps_per_epoch(self, size):
         e_size = size * (self.MISSPELLING_RATIO + 1)
