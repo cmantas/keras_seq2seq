@@ -2,6 +2,8 @@ from s2s_model import *
 from spelling_model import SpellingModel
 
 class EDModel(S2SModel):
+    BATCH_SIZE = 100 # smaller batches seem to have fastest conversion
+
     def create_model(self, latent_dim=128):
         # Inputs
         encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
@@ -35,31 +37,25 @@ class EDModel(S2SModel):
 
         self.model=model
 
-    def vectorize_sketo(self, texts):
-        encoder_input = self.vectorize_batch(texts)
+    def vectorize_pairs(self, in_texts, out_texts):
+        encoder_input = self.vectorize_batch(in_texts)
 
+        # TODO: maybe the encoder input is not like encoder input
         decoder_input = np.zeros_like(encoder_input)
         decoder_input[:, 1:] = encoder_input[:, :-1]
         #decoder_input[:, 0] = self.tokenizer.word_index['\t']
 
-        decoder_output = self.vectorize_batch(texts)
         X = (encoder_input, decoder_input)
+        if out_texts is None:
+            return X, None
+
+        decoder_output = self.vectorize_batch(out_texts)
         Y = decoder_output
         return(X, Y)
 
-    def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
-        if init or self.model is None:
-            self.create_model()
-
-        X, Y = self.vectorize_sketo(texts)
-
-        self.hist = self.model.fit(
-            X, Y, epochs=epochs, verbose=verbose, batch_size=100
-        )
 
     def predict(self, texts):
-
-        (encoder_input, decoder_input), _ = self.vectorize_sketo(texts)
+        (encoder_input, decoder_input), _ = self.vectorize_pairs(texts, None)
         preds = self.model.\
             predict([encoder_input, decoder_input]). \
             argmax(axis=2)
@@ -87,21 +83,15 @@ class EDSpellModel(EDModel, SpellingModel):
         Y = decoder_output
         return(X, Y)
 
-    def train_gen(self, texts):
+    def training_gen(self, texts):
         while True:
             misspelled, correct = create_misspellings(
                 texts, .05, 3, self.max_seq_length
             )
-            X, Y = self.vectorize(misspelled, correct)
-            yield (X, Y)
 
-
-    def train(self, texts, epochs=1, init=False, val_size=None, verbose=1):
-        if init or self.model is None:
-            self.create_model()
-
-        gen = self.train_gen(texts)
-
-        self.hist = self.model.fit_generator(
-            gen, epochs=epochs, batch_size=100, verbose=verbose
-        )
+            generated = list(zip(misspelled, correct))
+            Random(1).shuffle(generated)
+            for batch in batcher(generated, self.BATCH_SIZE):
+                miss, corr = zip(*batch) # unzip
+                X, Y = self.vectorize(miss, corr)
+                yield (X, Y)
