@@ -4,8 +4,10 @@ from math import ceil
 from helpers import *
 from sklearn.model_selection import train_test_split
 
-from keras.models import Model, load_model, Sequential
-from keras.layers import (
+import tensorflow as tf
+import tensorflow.keras.backend as K
+from tensorflow.keras.models import Model, load_model, Sequential
+from tensorflow.keras.layers import (
     Input,
     LSTM,
     Dense,
@@ -18,11 +20,11 @@ from keras.layers import (
     Embedding,
     Lambda,
 )
-import keras.backend as K
-from keras.preprocessing.text import Tokenizer
-from keras.utils import to_categorical
-from keras.preprocessing.sequence import pad_sequences
-from keras.metrics import sparse_categorical_accuracy
+
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.metrics import sparse_categorical_accuracy
 
 from numpy.random import seed
 

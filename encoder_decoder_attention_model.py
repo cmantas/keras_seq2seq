@@ -1,6 +1,6 @@
 from encoder_decoder_model import *
 from spelling_model import SpellingModel
-from keras.layers import dot, concatenate, Attention
+from tensorflow.keras.layers import dot, concatenate, Attention
 
 class EDAModel(EDModel):
     def create_model(self):
