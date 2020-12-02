@@ -9,8 +9,9 @@ def chunkify(lst, n):
 
 class SpellingModel(S2SModel):
     MISSPELLING_RATIO = 3
+    NOISE = .05
 
-    def generate_synthetic_pairs(self, texts, noise=.05):
+    def generate_synthetic_pairs(self, texts, noise=NOISE):
         misspelled, correct = create_misspellings(
             texts, .05, self.MISSPELLING_RATIO, self.max_seq_length
         )
@@ -20,7 +21,7 @@ class SpellingModel(S2SModel):
         return generated
 
     def training_gen(self, texts):
-        print(f"Generating Noisy texts on a ratio of 1/{self.MISSPELLING_RATIO}")
+        print(f"Generating Noisy texts on a ratio of 1/{self.MISSPELLING_RATIO} (in batches of {self.BATCH_SIZE})")
         while True:
             generated = self.generate_synthetic_pairs(texts)
             for batch in batcher(generated, self.BATCH_SIZE):
@@ -35,3 +36,10 @@ class SpellingModel(S2SModel):
         generated = self.generate_synthetic_pairs(val_texts)
         miss, corr = zip(*generated) # unzip
         return self.vectorize_pairs(miss, corr)
+
+    def report(self, txts):
+        identity_acc = self.evaluate(txts, txts)
+        misspelled = [add_noise_to_string(t, self.NOISE) for t in txts]
+        misspelled_acc = self.evaluate(misspelled, txts)
+        print('Accuracy on correct:', identity_acc,
+              ' on misspelled:', misspelled_acc)

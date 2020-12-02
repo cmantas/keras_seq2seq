@@ -198,7 +198,7 @@ class S2SModel:
     def evaluate(self, in_txts, target_txts):
         predicted = self.predict(in_txts)
         right = sum([1 for yh, y in zip(predicted, target_txts) if yh == y])
-        return float(right)/len(txts)
+        return float(right)/len(in_txts)
 
     def report(self, txts):
         acc = self.evaluate(txts, txts)
