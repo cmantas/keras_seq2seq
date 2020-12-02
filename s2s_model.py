@@ -187,7 +187,7 @@ class S2SModel:
         txts = [in_txts] if wrap else in_txts
 
         x = self.vectorize_batch(txts)
-        pred_seqs = self.model.predict_classes(x, verbose=0)
+        pred_seqs = self.model.predict(x, verbose=0).argmax(axis=2)
         out_txts = [self.seq_to_text(seq) for seq in pred_seqs]
 
         return out_txts[0] if wrap else out_txts
