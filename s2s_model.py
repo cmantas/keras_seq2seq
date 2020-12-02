@@ -191,3 +191,12 @@ class S2SModel:
         out_txts = [self.seq_to_text(seq) for seq in pred_seqs]
 
         return out_txts[0] if wrap else out_txts
+
+    def evaluate(self, txts):
+        predicted = self.predict(txts)
+        right = sum([1 for yh, y in zip(predicted, txts) if yh == y])
+        return float(right)/len(txts)
+
+    def report(self, txts):
+        acc = self.evaluate(txts)
+        print("Accuracy was: ", acc)
