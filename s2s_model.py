@@ -39,9 +39,12 @@ def acc(y, y_h):
 
 
 def seq_acc(y_true, y_pred):
-    a, b, _1 = y_true.shape
-    y = y_true.numpy().reshape(a, b)
-    y_h = np.argmax(y_pred.numpy(), 2)
+    a, b = y_true.shape[:2]
+    if len(y_pred.shape) == 3:
+        y = y_true.numpy().reshape(a, b)
+    else:
+        y = y_true
+    y_h = y_pred.numpy().argmax(2)
     seq_acc = np.all((y == y_h), axis=1).sum() / len(y)
     return seq_acc
 
