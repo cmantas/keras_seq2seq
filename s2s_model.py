@@ -69,7 +69,8 @@ class S2SModel:
         self.hist = None
 
     def init_from_texts(self, texts):
-        print(f"Creating a {self.__class__.__name__} Model")
+        print(f"Creating a {self.__class__.__name__} Model with \n"\
+              f"latent_dim={self.latent_dim}, optmizer={self.optimizer}")
         # \t and \n are our [START] and [END] delimiters.
         # With this trick we are adding them to the token index
         self.tokenizer = Tokenizer(char_level=True)
@@ -194,11 +195,11 @@ class S2SModel:
 
         return out_txts[0] if wrap else out_txts
 
-    def evaluate(self, txts):
-        predicted = self.predict(txts)
-        right = sum([1 for yh, y in zip(predicted, txts) if yh == y])
+    def evaluate(self, in_txts, target_txts):
+        predicted = self.predict(in_txts)
+        right = sum([1 for yh, y in zip(predicted, target_txts) if yh == y])
         return float(right)/len(txts)
 
     def report(self, txts):
-        acc = self.evaluate(txts)
+        acc = self.evaluate(txts, txts)
         print("Accuracy was: ", acc)
