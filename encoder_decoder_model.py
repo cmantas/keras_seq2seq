@@ -15,14 +15,14 @@ class EDModel(S2SModel):
         lstm_input = one_hot_enc(encoder_input)
 
         # Encoder
-        encoder = LSTM(latent_dim, return_sequences=False)
+        encoder = LSTM(self.latent_dim, return_sequences=False)
         encoder_output = encoder(lstm_input)
 
         # Decoder Input Data
         one_hot_dec = self.one_hot_layer()
         decoder_data = one_hot_dec(decoder_input)
 
-        decoder = LSTM(latent_dim, return_sequences=True)
+        decoder = LSTM(self.latent_dim, return_sequences=True)
         decoder_output = decoder(
             decoder_data, initial_state=[encoder_output, encoder_output]
         )
