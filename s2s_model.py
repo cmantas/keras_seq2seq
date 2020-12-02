@@ -66,7 +66,6 @@ class S2SModel:
         self.optimizer=optimizer
         self.model = None
         self.token_count = None
-        self.hist = None
 
     def init_from_texts(self, texts):
         print(f"Creating a {self.__class__.__name__} Model with \n"\
@@ -171,14 +170,17 @@ class S2SModel:
 
         gen = self.training_gen(train_txts)
 
-        self.hist = self.model.fit(
-            gen,
-            validation_data=self.validation_data(test_txts),
-            steps_per_epoch=self.steps_per_epoch(len(texts)),
-            verbose=verbose,
-            max_queue_size=1,
-            epochs=epochs,
-        )
+        try:
+            self.model.fit(
+                gen,
+                validation_data=self.validation_data(test_txts),
+                steps_per_epoch=self.steps_per_epoch(len(texts)),
+                verbose=verbose,
+                max_queue_size=1,
+                epochs=epochs,
+            )
+        except KeyboardInterrupt:
+            print("\n\nUnpacient are we?")
 
     def seq_to_text(self, seq):
         chars = [self.tokenizer.index_word.get(i, "") for i in seq]
