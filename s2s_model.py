@@ -55,13 +55,15 @@ class S2SModel:
     OPTIMIZER = "nadam"
     LOSS_FN = "sparse_categorical_crossentropy"
 
-    def __init__(self, max_string_length=25, latent_dim=LATENT_DIM):
+    def __init__(self, max_string_length=25, latent_dim=LATENT_DIM,
+                 optimizer=OPTIMIZER):
         # accomodate for the delimiters + spelling correction
         self.max_seq_length = max_string_length  # + 3
         self.token_idx = None
         self.inverse_token_index = None
         self.tokenizer = None
         self.latent_dim = latent_dim
+        self.optimizer=optimizer
         self.model = None
         self.token_count = None
         self.hist = None
@@ -114,7 +116,7 @@ class S2SModel:
 
     def compile_model(self):
         self.model.compile(
-            loss=self.LOSS_FN, optimizer=self.OPTIMIZER,
+            loss=self.LOSS_FN, optimizer=self.optimizer,
             run_eagerly=True,
             metrics=[acc, seq_acc],
         )
