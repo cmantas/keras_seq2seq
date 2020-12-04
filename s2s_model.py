@@ -26,6 +26,8 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.metrics import sparse_categorical_accuracy
 
+from keras_adabound import AdaBound
+
 from numpy.random import seed
 
 seed(1)
@@ -52,7 +54,7 @@ def seq_acc(y_true, y_pred):
 class S2SModel:
     BATCH_SIZE = 1000
     LATENT_DIM = 128
-    OPTIMIZER = "nadam"
+    OPTIMIZER = 'nadam' #AdaBound(lr=1e-2, final_lr=0.1) # also: nadam, adamax
     LOSS_FN = "sparse_categorical_crossentropy"
 
     def __init__(self, max_string_length=25, latent_dim=LATENT_DIM,
