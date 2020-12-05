@@ -65,29 +65,30 @@ class S2SModel:
         self.inverse_token_index = None
         self.tokenizer = None
         self.latent_dim = latent_dim
-        self.optimizer=optimizer
+        self.optimizer = optimizer
         self.model = None
         self.token_count = None
 
     def init_from_texts(self, texts):
-        print(f"Creating a {self.__class__.__name__} Model with \n"\
-              f"latent_dim={self.latent_dim}, optmizer={self.optimizer}")
+        print(f"Creating a {self.__class__.__name__} Model with \n"
+              f"max_len={self.max_seq_length} latent_dim={self.latent_dim}, "
+              "optmizer={self.optimizer}")
         # \t and \n are our [START] and [END] delimiters.
         # With this trick we are adding them to the token index
         self.tokenizer = Tokenizer(char_level=True)
         self.tokenizer.fit_on_texts(texts + ["\t", "\n"])
         self.token_count = len(self.tokenizer.word_index)
 
-    def vectorize_batch(self, texts):
+    def vectorize_batch(self, texts, padding='post'):
         seqs = self.tokenizer.texts_to_sequences(texts)
-        return pad_sequences(seqs, self.max_seq_length, padding="post")
+        return pad_sequences(seqs, self.max_seq_length, padding=padding)
 
     def vectorize_input_batch(self, texts):
-        return self.vectorize_batch(texts)
+        return self.vectorize_batch(texts, 'pre')
 
     def vectorize_output_batch(self, texts):
         # texts = wrap_with_delims(texts)
-        seqs = self.vectorize_batch(texts)
+        seqs = self.vectorize_batch(texts, 'post')
         # reshape to a 3d array of (?, vocab_size, 1)
         return seqs.reshape((*seqs.shape, 1))
 
