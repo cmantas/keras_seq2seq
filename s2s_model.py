@@ -95,6 +95,8 @@ class S2SModel:
         return vectorize_phrase(txt, self.token_idx, self.max_seq_length)
 
     def training_gen(self, texts):
+        # do not mutate the input
+        texts = texts.copy()
         while True:
             Random().shuffle(texts)
             for batch in batcher(texts, self.BATCH_SIZE):
