@@ -189,7 +189,7 @@ class S2SModel:
         chars = [self.tokenizer.index_word.get(i, "") for i in seq]
         return "".join(chars)
 
-    def predict(self, in_txts):
+    def predict(self, in_txts, confidence=False):
         wrap = isinstance(in_txts, str)
 
         txts = [in_txts] if wrap else in_txts
@@ -197,11 +197,13 @@ class S2SModel:
         x = self.vectorize_batch(txts)
         predictions = self.model.predict(x, verbose=0)
         pred_seqs = predictions.argmax(axis=2)
-        pred_probs = predictions.max(axis=2).min(axis=1)
         out_txts = [self.seq_to_text(seq) for seq in pred_seqs]
-        return list(zip(out_txts, list(pred_probs)))
+        if not confidence:
+            return out_txts[0] if wrap else out_txts
 
-        return out_txts[0] if wrap else out_txts
+        pred_probs = predictions.max(axis=2).min(axis=1)
+        zipped = list(zip(out_txts, list(pred_probs)))
+        return zipped[0] if wrap else zipped
 
     def evaluate(self, in_txts, target_txts):
         predicted = self.predict(in_txts)
