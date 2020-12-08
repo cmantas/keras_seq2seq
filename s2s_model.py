@@ -77,6 +77,7 @@ class S2SModel:
         self.tokenizer = Tokenizer(char_level=True)
         self.tokenizer.fit_on_texts(texts + ["\t", "\n"])
         self.token_count = len(self.tokenizer.word_index)
+        print(f"Tokenizing with {token_count} tokens")
 
     def vectorize_batch(self, texts):
         seqs = self.tokenizer.texts_to_sequences(texts)
