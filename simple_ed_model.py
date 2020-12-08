@@ -64,3 +64,6 @@ class SEDAModel(S2SModel):
 
 class SEDASpellingModel(SEDAModel, SpellingModel):
     pass
+
+class SEDSpellingModel(SEDModel, SpellingModel):
+    pass
