@@ -9,7 +9,10 @@ from tensorflow.keras.layers import (
     Input,
     TimeDistributed,
     Dense,
-    Attention
+    Attention,
+    Activation,
+    concatenate,
+    dot
 )
 
 class SEDModel(S2SModel):
@@ -41,21 +44,31 @@ class SEDAModel(S2SModel):
         lstm_input = one_hot_emb(encoder_input)
 
         encoder = Bidirectional(
-            LSTM(self.latent_dim, return_sequences=False),
+            LSTM(self.latent_dim, return_sequences=True),
             input_shape=(output_len, self.token_count),
         )
 
+        # Due to `return_sequences` the encoder outputs are of shape
+        # (X, sequence_length, 2 x LSTM hidden dim).
+        # we only need the last timestep for our decoder input
         encoder_output = encoder(lstm_input)
+        encoder_last = encoder_output[:,-1,:]
 
-        repeated = RepeatVector(output_len)(encoder_output)
+        repeated = RepeatVector(output_len)(encoder_last)
 
         decoder = Bidirectional(LSTM(self.latent_dim, return_sequences=True))
         decoder_output = decoder(repeated)
 
-        attention = Attention()
-        decoder_combined_context = attention([decoder_output, encoder_output])
+        # custom attention
+        attention = dot([decoder_output, encoder_output], axes=[2, 2])
+        attention = Activation('softmax', name='attention')(attention)
+        context = dot([attention, encoder_output], axes=[2,1])
+        decoder_combined_context = concatenate([context, decoder_output])
 
-        td_dense = TimeDistributed(Dense(self.latent_dim, activation='tanh'))
+        #attention = Attention()
+        #decoder_combined_context = attention([decoder_output, encoder_output])
+
+        td_dense = TimeDistributed(Dense(self.latent_dim, activation='relu'))
         output_1 = td_dense(decoder_combined_context)
         output = self.output_layer()(output_1)
 
