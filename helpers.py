@@ -3,6 +3,7 @@ from random import Random
 from numpy.random import choice, randint, shuffle, seed, rand
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from unidecode import unidecode
 mpl.style.use('seaborn')
 
 
@@ -30,7 +31,7 @@ def load_preprocessed(data_path, max_len):
         and filtering out phrases that are longer than our maximum sequence length"""
     with open(data_path) as f:
         lines = f.readlines()
-    lines = text_preprocess(lines)
+    lines = [text_preprocess(l) for l in lines]
     # allow only for a limited count of
     allowed_chars = set(' !"#$%&\'()+,-./0123456789:;?[]_`abcdefghijklmnopqrstuvwxyz{}')
     selected = []
@@ -47,16 +48,12 @@ def wrap_with_delims(texts, start='\t', end='\n'):
     and and end sequence delimiters."""
     return [start + t + end for t in texts]
 
-def text_preprocess(texts):
-    """Some minimal text preprocessing:
-    * downcase
-    * remove trailing periods
-    * remove a weird unicode char"""
-    return [t.strip().lower().\
-            rstrip('.').strip().\
-            replace(u'\u202f', '').\
-            replace(u'\ufeff','') for t in texts]
-
+def text_preprocess(t):
+    t = unidecode(t.strip()).lower()
+    t = t.rstrip('.').strip().\
+        replace(u'\u202f', '').\
+        replace(u'\ufeff','')
+    return t
 #spelling
 
 CHARS = list("abcdefghijklmnopqrstuvwxyz .")
