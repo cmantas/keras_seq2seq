@@ -1,4 +1,6 @@
 from math import ceil
+from copy import copy
+import pickle
 
 
 from helpers import *
@@ -50,6 +52,11 @@ def seq_acc(y_true, y_pred):
     seq_acc = np.all((y == y_h), axis=1).sum() / len(y)
     return seq_acc
 
+def load_s2s_model(fname):
+    s2s_model = pickle.load(open(fname + '.pickle', 'rb'))
+    s2s_model.create_model()
+    s2s_model.model.load_weights(fname + '.h5')
+    return s2s_model
 
 class S2SModel:
     BATCH_SIZE = 1000
@@ -224,3 +231,11 @@ class S2SModel:
 
     def last_training_metrics(self):
         return {k: v[-1] for k,v in self.history.items()}
+
+    def save(self, fpath):
+        self.model.save_weights(fpath + '.h5')
+        # creating a dummy copy, so that we don't mutate the current instance
+        dummy = copy(self)
+        dummy.model = None
+        with open(fpath + '.pickle', 'wb') as f:
+            pickle.dump(dummy, f)
