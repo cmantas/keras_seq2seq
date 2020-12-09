@@ -68,6 +68,7 @@ class S2SModel:
         self.optimizer=optimizer
         self.model = None
         self.token_count = None
+        self.history = None
 
     def init_from_texts(self, texts):
         print(f"Creating a {self.__class__.__name__} Model with \n"\
@@ -187,6 +188,10 @@ class S2SModel:
             )
         except KeyboardInterrupt:
             print("\n\nUnpacient are we?")
+        finally:
+            self.history = self.model.history.history
+
+        print(self.last_training_metrics())
 
     def seq_to_text(self, seq):
         chars = [self.tokenizer.index_word.get(i, "") for i in seq]
@@ -216,3 +221,6 @@ class S2SModel:
     def report(self, txts):
         acc = self.evaluate(txts, txts)
         print("Accuracy was: ", acc)
+
+    def last_training_metrics(self):
+        return {k: v[-1] for k,v in self.history.items()}
