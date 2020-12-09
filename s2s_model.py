@@ -102,15 +102,18 @@ class S2SModel:
                 yield self.vectorize_pairs(batch, batch)
 
     def one_hot_layer(self):
-        # Alternatively, with an embedding layer:
-        # Embedding(input_dim=token_count, output_dim=token_count,
-        #                    input_length=None, trainable=False,
-        #                    embeddings_initializer='identity',
-        #                    dtype='float16')
-        # This could conceivably be trainable too
+        # Create a simple embedding Layer that only does
+        # one-hot encoding
+        return Embedding(input_dim=self.token_count,
+                         output_dim=self.token_count,
+                         input_length=None, trainable=False,
+                         embeddings_initializer='identity')
+        # This embeddings could conceivably be trainable too
 
+        # Alternatively:
+        # Lambda(lambda x: K.one_hot(x, self.token_count))
+        # Or casted to uint:
         # maybe: one_hot(K.cast(x,'uint8'), token_count))
-        return Lambda(lambda x: K.one_hot(x, self.token_count))
 
     def output_layer(self):
         return TimeDistributed(
