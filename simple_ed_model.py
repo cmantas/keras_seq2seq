@@ -69,7 +69,7 @@ class SEDAModel(S2SModel):
         #decoder_combined_context = attention([decoder_output, encoder_output])
 
         td_dense = TimeDistributed(
-            Dense(self.latent_dim, activation='relu')
+            Dense(self.latent_dim, activation='tanh')
         )
         output_1 = td_dense(decoder_combined_context)
         output = self.output_layer()(output_1)
