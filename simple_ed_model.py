@@ -63,13 +63,14 @@ class SEDAModel(S2SModel):
         decoder_output = decoder(repeated)
 
         # custom attention
-        attention = dot([decoder_output, encoder_output], axes=[2, 2])
-        attention = Activation('softmax', name='attention')(attention)
-        context = dot([attention, encoder_output], axes=[2,1])
-        decoder_combined_context = concatenate([context, decoder_output])
+        #attention = dot([decoder_output, encoder_output], axes=[2, 2])
+        #attention = Activation('softmax', name='attention')(attention)
+        #context = dot([attention, encoder_output], axes=[2,1])
+        #decoder_combined_context = concatenate([context, decoder_output])
 
-        #attention = Attention()
-        #decoder_combined_context = attention([decoder_output, encoder_output])
+        attention = Attention()
+        decoder_combined_context = attention([decoder_output, encoder_output])
+        #decoder_combined_context = concatenate([context, decoder_output])
 
         td_dense = TimeDistributed(
             Dense(self.latent_dim, activation='tanh')
