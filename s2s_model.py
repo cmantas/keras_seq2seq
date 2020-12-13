@@ -1,4 +1,6 @@
 from math import ceil
+from copy import copy
+import pickle
 
 
 from helpers import *
@@ -50,6 +52,11 @@ def seq_acc(y_true, y_pred):
     seq_acc = np.all((y == y_h), axis=1).sum() / len(y)
     return seq_acc
 
+def load_s2s_model(fname):
+    s2s_model = pickle.load(open(fname + '.pickle', 'rb'))
+    s2s_model.create_model()
+    s2s_model.model.load_weights(fname + '.h5')
+    return s2s_model
 
 class S2SModel:
     BATCH_SIZE = 1000
@@ -68,6 +75,7 @@ class S2SModel:
         self.optimizer = optimizer
         self.model = None
         self.token_count = None
+        self.history = None
 
     def init_from_texts(self, texts):
         print(f"Creating a {self.__class__.__name__} Model with \n"
@@ -78,6 +86,7 @@ class S2SModel:
         self.tokenizer = Tokenizer(char_level=True)
         self.tokenizer.fit_on_texts(texts + ["\t", "\n"])
         self.token_count = len(self.tokenizer.word_index)
+        print(f"Tokenizing with {self.token_count} tokens")
 
     def vectorize_batch(self, texts, padding='post'):
         seqs = self.tokenizer.texts_to_sequences(texts)
@@ -104,15 +113,18 @@ class S2SModel:
                 yield self.vectorize_pairs(batch, batch)
 
     def one_hot_layer(self):
-        # Alternatively, with an embedding layer:
-        # Embedding(input_dim=token_count, output_dim=token_count,
-        #                    input_length=None, trainable=False,
-        #                    embeddings_initializer='identity',
-        #                    dtype='float16')
-        # This could conceivably be trainable too
+        # Create a simple embedding Layer that only does
+        # one-hot encoding
+        return Embedding(input_dim=self.token_count,
+                         output_dim=self.token_count,
+                         input_length=None, trainable=False,
+                         embeddings_initializer='identity')
+        # This embeddings could conceivably be trainable too
 
+        # Alternatively:
+        # Lambda(lambda x: K.one_hot(x, self.token_count))
+        # Or casted to uint:
         # maybe: one_hot(K.cast(x,'uint8'), token_count))
-        return Lambda(lambda x: K.one_hot(x, self.token_count))
 
     def output_layer(self):
         return TimeDistributed(
@@ -186,21 +198,30 @@ class S2SModel:
             )
         except KeyboardInterrupt:
             print("\n\nUnpacient are we?")
+        finally:
+            self.history = self.model.history.history
+
+        print(self.last_training_metrics())
 
     def seq_to_text(self, seq):
         chars = [self.tokenizer.index_word.get(i, "") for i in seq]
         return "".join(chars)
 
-    def predict(self, in_txts):
+    def predict(self, in_txts, confidence=False):
         wrap = isinstance(in_txts, str)
 
         txts = [in_txts] if wrap else in_txts
 
         x = self.vectorize_batch(txts)
-        pred_seqs = self.model.predict(x, verbose=0).argmax(axis=2)
+        predictions = self.model.predict(x, verbose=0)
+        pred_seqs = predictions.argmax(axis=2)
         out_txts = [self.seq_to_text(seq) for seq in pred_seqs]
+        if not confidence:
+            return out_txts[0] if wrap else out_txts
 
-        return out_txts[0] if wrap else out_txts
+        pred_probs = predictions.max(axis=2).min(axis=1)
+        zipped = list(zip(out_txts, list(pred_probs)))
+        return zipped[0] if wrap else zipped
 
     def evaluate(self, in_txts, target_txts):
         predicted = self.predict(in_txts)
@@ -210,3 +231,14 @@ class S2SModel:
     def report(self, txts):
         acc = self.evaluate(txts, txts)
         print("Accuracy was: ", acc)
+
+    def last_training_metrics(self):
+        return {k: v[-1] for k,v in self.history.items()}
+
+    def save(self, fpath):
+        self.model.save_weights(fpath + '.h5')
+        # creating a dummy copy, so that we don't mutate the current instance
+        dummy = copy(self)
+        dummy.model = None
+        with open(fpath + '.pickle', 'wb') as f:
+            pickle.dump(dummy, f)
