@@ -7,24 +7,33 @@ from unidecode import unidecode
 mpl.style.use('seaborn')
 
 
-def read_data(fname, delimiter="\n"):
+def read_texts(fname, normalize=True):
+    lines = []
+    with open(fname, 'r', encoding='utf-8') as f:
+        for line in f:
+            if normalize:
+                line = text_preprocess(line)
+            else:
+                line = line.strip()
+            lines.append(line)
+
+    return lines
+
+def read_data_tuples(fname, delimiter="\t", elems=2, transpose=True):
     """Helper reading a file with the input and
     target texts.
     Returns a tuple with 2 lists of phrases (input, target)"""
-    input_phrases = []
-    target_phrases = []
-    with open(fname, 'r', encoding='utf-8') as f:
-        lines = f.read().split(delimiter)
+    lines = []
+    for line in read_texts(fname):
+        tup = line.split(delimiter)
+        if len(tup) != elems:
+            continue
+        lines.append(tup)
 
-        for line in lines:
-            pair = line.split('\t')
-            if len(pair) !=2: continue
-
-            input_text, target_text = pair
-            input_phrases.append(input_text)
-            target_phrases.append(target_text)
-
-        return (input_phrases, target_phrases)
+    if transpose:
+        return list(zip(*lines))
+    else:
+        return lines
 
 def load_preprocessed(data_path, max_len):
     """Dirty helper fn loading a file from disk, doing some basic preprocessing
