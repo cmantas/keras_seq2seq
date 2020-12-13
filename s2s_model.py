@@ -213,7 +213,9 @@ class S2SModel:
         txts = [in_txts] if wrap else in_txts
 
         x = self.vectorize_batch(txts)
-        predictions = self.model.predict(x, verbose=0)
+        predictions = self.model.predict(
+            x, verbose=0, batch_size=self.BATCH_SIZE
+        )
         pred_seqs = predictions.argmax(axis=2)
         out_txts = [self.seq_to_text(seq) for seq in pred_seqs]
         if not confidence:
