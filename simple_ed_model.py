@@ -40,7 +40,6 @@ class SEDSpellingModel(SEDModel, SpellingModel):
 
 class SEDAModel(S2SModel):
     def create_model(self):
-        raise 'this model does not really work...'
         output_len = self.max_seq_length
 
         encoder_input = Input(shape=(self.max_seq_length), dtype='int32')
