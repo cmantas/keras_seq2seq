@@ -15,8 +15,12 @@ from tensorflow.keras.layers import (
     dot,
     Conv1D,
     Reshape,
-    Embedding
+    Embedding,
+    Layer,
+    Dropout
 )
+import tensorflow as tf
+
 
 from tensorflow.keras import backend as K
 import numpy as np
@@ -127,21 +131,45 @@ class CSEDAModel(S2SModel):
         # (X, sequence_length, 2 x LSTM hidden dim).
         # we only need the last timestep for our decoder input
         encoder_output = encoder(embedded)
+
+
+class CSEDASpellingModel(CSEDAModel, SpellingModel):
+    pass
+
+
+class ECCNNModel(S2SModel):
+    def create_model(self):
+        output_len = self.max_seq_length
+
+        inputt = Input(shape=(self.max_seq_length), dtype='int32')
+        embedded = self.one_hot_layer()(inputt)
+
+        con = Conv1D(
+            self.latent_dim, kernel_size=2, activation='tanh', padding='same'
+        )(embedded)
+
+        lstm_input = concatenate([embedded, con])
+
+        encoder_output = Bidirectional(
+            LSTM(self.latent_dim, return_sequences=True),
+            input_shape=(output_len, self.token_count),
+        )(lstm_input)
+        # Due to `return_sequences` the encoder outputs are of shape
+        # (X, sequence_length, 2 x LSTM hidden dim).
+        # we only need the last timestep for our decoder input
         encoder_last = encoder_output[:,-1,:]
 
         repeated = RepeatVector(output_len)(encoder_last)
 
-        decoder = Bidirectional(LSTM(self.latent_dim, return_sequences=True))
-        decoder_output = decoder(repeated)
+        decoder_output = Bidirectional(
+            LSTM(self.latent_dim, return_sequences=True)
+        )(repeated)
 
         # custom attention
         attention = dot([decoder_output, encoder_output], axes=[2, 2])
         attention = Activation('softmax', name='attention')(attention)
         context = dot([attention, encoder_output], axes=[2,1])
         decoder_combined_context = concatenate([context, decoder_output])
-
-        attention = Attention()
-        decoder_combined_context = attention([decoder_output, encoder_output])
 
         td_dense = TimeDistributed(
             Dense(self.latent_dim, activation='tanh')
@@ -152,5 +180,6 @@ class CSEDAModel(S2SModel):
         self.model =  Model(inputs=inputt, outputs=output)
         self.compile_model()
 
-class CSEDASpellingModel(CSEDAModel, SpellingModel):
+
+class ECCNNSpellingModel(ECCNNModel, SpellingModel ):
     pass
