@@ -7,7 +7,7 @@ from unidecode import unidecode
 mpl.style.use('seaborn')
 
 
-def read_texts(fname, normalize=True):
+def read_texts(fname, normalize=True, max_len=None):
     lines = []
     with open(fname, 'r', encoding='utf-8') as f:
         for line in f:
@@ -15,7 +15,8 @@ def read_texts(fname, normalize=True):
                 line = text_preprocess(line)
             else:
                 line = line.strip()
-            lines.append(line)
+            if max_len is None or len(line) <= max_len:
+                lines.append(line)
 
     return lines
 
