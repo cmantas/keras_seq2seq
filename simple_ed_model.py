@@ -17,7 +17,7 @@ from tensorflow.keras.layers import (
     Reshape,
     Embedding,
     Layer,
-    Dropout
+    Dropout,
 )
 import tensorflow as tf
 
@@ -144,11 +144,19 @@ class ECCNNModel(S2SModel):
         inputt = Input(shape=(self.max_seq_length), dtype='int32')
         embedded = self.one_hot_layer()(inputt)
 
-        con = Conv1D(
-            self.latent_dim, kernel_size=2, activation='tanh', padding='same'
+        conv = Conv1D(
+            self.latent_dim, kernel_size=3, activation='tanh', padding='same'
         )(embedded)
 
-        lstm_input = concatenate([embedded, con])
+        conv = Conv1D(
+            self.latent_dim, kernel_size=3, activation='tanh', padding='same'
+        )(conv)
+
+        tdconv = TimeDistributed(
+            Dense(self.latent_dim, activation='tanh')
+        )(conv)
+
+        lstm_input = concatenate([embedded, tdconv])
 
         encoder_output = Bidirectional(
             LSTM(self.latent_dim, return_sequences=True),

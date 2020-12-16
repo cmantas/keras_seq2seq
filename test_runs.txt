@@ -1,27 +1,66 @@
-Dry runs with 30 steps/epoch (30 batches):
+18K training, 2K test
 
-1) bidirectional, lstm, 500, time-dist:         (0.146, 0.5575)
-2) bidirectional, lstm, 512, dense    :         (0.195, 0.583125)
-3) bidrectional, bidirectional, 512, time-dist: (0.1525, 0.557625)
-4) bidirectional+drop 0.75, lstm, 512, time-dist:    (0.099, 0.542375)
-5) bidirectional+drop 0.2, lstm, 512, time-dist:    (0.0975, 0.53225)
-6) bidirectional+drop 0.2, lstm+drop 0.2, 512, time-dist:    (0.076, 0.516625)
-7) bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist:    (0.0685,0.509625) !!!
-8) bidirectional+drop 0.2-rd .2, lstm+drop 0.2-rd .2, 512, time-dist:    (0.072, 0.517625)
-9) bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 256, time-dist:  (0.075, 0.53775)
-10)bidirectional+drop 0.2, rd .2, time-dist, lstm+drop 0.2, 512, time-dist:(0.9995, 0.99975)
-11)bidirectional+drop 0.2, rd .2, lstm+drop 0.2, 512, time-dist, time-dist: (0.0775, 0.515125)
-12)bidirectional rd.05, lstm, 512, time-dist, time-dist: ?
-13)bidirectional drop .05, lstm, 512, time-dist, time-dist: ?
-14)bidirectional rd.1, lstm, 512, time-dist, time-dist: ?
+concat(input, TdD(Conv(tanh), tanh)) -> LSTM
+acc: 0.4320 - seq_acc: 2.5e-5 - val_loss: 1.6104 - val_acc: 0.4989 - val_seq_acc: 0.0000
+acc: 0.6140 - seq_acc: 0.0037 - val_loss: 0.8516 - val_acc: 0.7258 - val_seq_acc: 0.0105
+acc: 0.7534 - seq_acc: 0.0611 - val_loss: 0.6873 - val_acc: 0.7938 - val_seq_acc: 0.1115
+acc: 0.7843 - seq_acc: 0.1128 - val_loss: 0.6551 - val_acc: 0.8017 - val_seq_acc: 0.1550
+acc: 0.7920 - seq_acc: 0.1313 - val_loss: 0.6587 - val_acc: 0.7997 - val_seq_acc: 0.1424
+acc: 0.7992 - seq_acc: 0.1495 - val_loss: 0.6675 - val_acc: 0.7886 - val_seq_acc: 0.1039
+acc: 0.7976 - seq_acc: 0.1536 - val_loss: 0.6894 - val_acc: 0.7787 - val_seq_acc: 0.0754
 
 
+TdD(concat(input, Conv(tanh)), tanh) -> LSTM
+acc: 0.4308 - seq_acc: 3.7e-5 - val_loss: 1.6569 - val_acc: 0.4903 - val_seq_acc: 0.0000
+acc: 0.6022 - seq_acc: 0.0032 - val_loss: 0.8671 - val_acc: 0.7146 - val_seq_acc: 0.0301
+acc: 0.7531 - seq_acc: 0.0615 - val_loss: 0.6820 - val_acc: 0.7980 - val_seq_acc: 0.1425
+acc: 0.7811 - seq_acc: 0.1090 - val_loss: 0.6885 - val_acc: 0.7916 - val_seq_acc: 0.0873
+acc: 0.7953 - seq_acc: 0.1386 - val_loss: 0.6448 - val_acc: 0.8034 - val_seq_acc: 0.1705
+acc: 0.7943 - seq_acc: 0.1416 - val_loss: 0.6636 - val_acc: 0.7928 - val_seq_acc: 0.1138
+acc: 0.7974 - seq_acc: 0.1526 - val_loss: 0.6995 - val_acc: 0.7725 - val_seq_acc: 0.0694
+(maybe this better?)
 
-Full training
-11) epoch 46, 220K len30/33   : loss: 0.0638 - acc: 0.7247 - val_loss: 0.0693 - val_acc: 0.7228
-3)  50 epochs, 220K len30/33 :loss: 0.0461 - acc: 0.7790 - val_loss: 0.0592 - val_acc: 0.7714, (0.037, 0.155875)
-3)  30 epochs, 395K len30/33 :loss: 0.0508 - acc: 0.7613 - val_loss: 0.0617 - val_acc: 0.7505  (0.0325, 0.156)
-12) 47 epochs, 220K len30/33 :loss: 0.0486 - acc: 0.7877 - val_loss: 0.0573 - val_acc: 0.7823  (0.0325, 0.149)
-12) 25 epochs, 395K len30/33 :loss: 0.0528 - acc: 0.7770 - val_loss: 0.0596 - val_acc: 0.7631  (0.029, 0.144875)
-13) 25 epochs, 395K len30/33 : ...                  ??                                         (0.026, 0.177125)
+concat(input, TdD(Conv, softmax)) -> LSTM
+acc: 0.4148 - seq_acc: 6.3e-5 - val_loss: 1.9034 - val_acc: 0.4531 - val_seq_acc: 0.0000
+acc: 0.4670 - seq_acc: 3.0e-4 - val_loss: 1.4798 - val_acc: 0.5187 - val_seq_acc: 0.0000
+acc: 0.5261 - seq_acc: 3.3e-4 - val_loss: 1.2653 - val_acc: 0.5251 - val_seq_acc: 0.0000
 
+concat(input, TdD(Conv(relu), relu)) -> LSTM
+acc: 0.4166 - seq_acc: 3.8e-5 - val_loss: 1.8935 - val_acc: 0.4498 - val_seq_acc: 0.0000
+acc: 0.4898 - seq_acc: 2.1e-4 - val_loss: 1.3088 - val_acc: 0.5429 - val_seq_acc: 0.0000
+acc: 0.6616 - seq_acc: 0.0099 - val_loss: 0.7500 - val_acc: 0.7609 - val_seq_acc: 0.0331
+
+concat(input, TdD(Conv(tanh), relu)) -> LSTM
+acc: 0.4243 - seq_acc: 5.e-05 - val_loss: 1.7017 - val_acc: 0.4912 - val_seq_acc: 0.0000
+acc: 0.5660 - seq_acc: 0.0014 - val_loss: 0.9614 - val_acc: 0.6520 - val_seq_acc: 0.0030
+acc: 0.7368 - seq_acc: 0.0499 - val_loss: 0.6808 - val_acc: 0.7958 - val_seq_acc: 0.1345
+acc: 0.7819 - seq_acc: 0.1081 - val_loss: 0.6549 - val_acc: 0.8019 - val_seq_acc: 0.1566
+acc: 0.7951 - seq_acc: 0.1423 - val_loss: 0.6438 - val_acc: 0.8036 - val_seq_acc: 0.1716
+acc: 0.7968 - seq_acc: 0.1497 - val_loss: 0.6444 - val_acc: 0.8001 - val_seq_acc: 0.1465
+
+concat(input, TdD(Conv(tanh), tanh)) -> LSTM -> TdD ... LSTM -> TdD...
+acc: 0.4372 - seq_acc: 2.5e-5 - val_loss: 1.5788 - val_acc: 0.4911 - val_seq_acc: 0.0000
+acc: 0.5763 - seq_acc: 0.0031 - val_loss: 1.0764 - val_acc: 0.5756 - val_seq_acc: 0.0033
+acc: 0.7087 - seq_acc: 0.0301 - val_loss: 0.6966 - val_acc: 0.7896 - val_seq_acc: 0.1128
+acc: 0.7615 - seq_acc: 0.0722 - val_loss: 0.6999 - val_acc: 0.7880 - val_seq_acc: 0.0735
+acc: 0.7836 - seq_acc: 0.1119 - val_loss: 0.6492 - val_acc: 0.8029 - val_seq_acc: 0.1676
+acc: 0.7869 - seq_acc: 0.1300 - val_loss: 0.6675 - val_acc: 0.7878 - val_seq_acc: 0.0845
+acc: 0.7903 - seq_acc: 0.1335 - val_loss: 0.6721 - val_acc: 0.7884 - val_seq_acc: 0.0693
+
+concat(input, TdD(Conv(tanh)x2, tanh)) -> LSTM
+acc: 0.4337 - seq_acc: 2.5e-5 - val_loss: 1.5655 - val_acc: 0.5096 - val_seq_acc: 0.0000
+acc: 0.6158 - seq_acc: 0.0040 - val_loss: 0.8702 - val_acc: 0.7198 - val_seq_acc: 0.0086
+acc: 0.7550 - seq_acc: 0.0661 - val_loss: 0.6889 - val_acc: 0.7936 - val_seq_acc: 0.1114
+acc: 0.7825 - seq_acc: 0.1047 - val_loss: 0.6555 - val_acc: 0.8019 - val_seq_acc: 0.1541
+acc: 0.7979 - seq_acc: 0.1414 - val_loss: 0.6444 - val_acc: 0.8034 - val_seq_acc: 0.1715
+acc: 0.7945 - seq_acc: 0.1464 - val_loss: 0.6543 - val_acc: 0.7946 - val_seq_acc: 0.1163
+acc: 0.7984 - seq_acc: 0.1535 - val_loss: 0.6639 - val_acc: 0.7911 - val_seq_acc: 0.0971
+
+concat(input, TdD(Conv3(tanh)x2, tanh)) -> LSTM
+acc: 0.4413 - seq_acc: 2.5e-5 - val_loss: 1.4377 - val_acc: 0.5363 - val_seq_acc: 0.0000
+acc: 0.6342 - seq_acc: 0.0084 - val_loss: 0.8704 - val_acc: 0.7108 - val_seq_acc: 0.0237
+acc: 0.7599 - seq_acc: 0.0750 - val_loss: 0.6797 - val_acc: 0.7949 - val_seq_acc: 0.1291
+acc: 0.7834 - seq_acc: 0.1238 - val_loss: 0.6500 - val_acc: 0.8022 - val_seq_acc: 0.1629
+acc: 0.7936 - seq_acc: 0.1462 - val_loss: 0.6408 - val_acc: 0.8037 - val_seq_acc: 0.1720
+acc: 0.7982 - seq_acc: 0.1609 - val_loss: 0.6419 - val_acc: 0.8012 - val_seq_acc: 0.1504
+acc: 0.8015 - seq_acc: 0.1671 - val_loss: 0.6973 - val_acc: 0.7649 - val_seq_acc: 0.0578
