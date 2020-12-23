@@ -142,21 +142,15 @@ class ECCNNModel(S2SModel):
         output_len = self.max_seq_length
 
         inputt = Input(shape=(self.max_seq_length), dtype='int32')
-        embedded = self.one_hot_layer()(inputt)
+        emb = self.one_hot_layer()
+        emb.trainable = True
+        embedded = emb(inputt)
 
-        conv = Conv1D(
-            self.latent_dim, kernel_size=3, activation='tanh', padding='same'
+        conv2 = Conv1D(
+            self.latent_dim, kernel_size=2, activation='tanh', padding='same'
         )(embedded)
 
-        conv = Conv1D(
-            self.latent_dim, kernel_size=3, activation='tanh', padding='same'
-        )(conv)
-
-        tdconv = TimeDistributed(
-            Dense(self.latent_dim, activation='tanh')
-        )(conv)
-
-        lstm_input = concatenate([embedded, tdconv])
+        lstm_input = concatenate([embedded, conv2])
 
         encoder_output = Bidirectional(
             LSTM(self.latent_dim, return_sequences=True),
