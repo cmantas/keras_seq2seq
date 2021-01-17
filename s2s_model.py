@@ -80,7 +80,7 @@ class S2SModel:
     def init_from_texts(self, texts):
         print(f"Creating a {self.__class__.__name__} Model with \n"
               f"max_len={self.max_seq_length} latent_dim={self.latent_dim}, "
-              "optmizer={self.optimizer}")
+              f"optmizer={self.optimizer}")
         # \t and \n are our [START] and [END] delimiters.
         # With this trick we are adding them to the token index
         self.tokenizer = Tokenizer(char_level=True)
