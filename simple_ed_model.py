@@ -131,6 +131,28 @@ class CSEDAModel(S2SModel):
         # (X, sequence_length, 2 x LSTM hidden dim).
         # we only need the last timestep for our decoder input
         encoder_output = encoder(embedded)
+        encoder_last = encoder_output[:,-1,:]
+
+        repeated = RepeatVector(output_len)(encoder_last)
+
+        decoder_output = Bidirectional(
+            LSTM(self.latent_dim, return_sequences=True)
+        )(repeated)
+
+        # custom attention
+        attention = dot([decoder_output, encoder_output], axes=[2, 2])
+        attention = Activation('softmax', name='attention')(attention)
+        context = dot([attention, encoder_output], axes=[2,1])
+        decoder_combined_context = concatenate([context, decoder_output])
+
+        td_dense = TimeDistributed(
+            Dense(self.latent_dim, activation='tanh')
+        )
+        output_1 = td_dense(decoder_combined_context)
+        output = self.output_layer()(output_1)
+
+        self.model =  Model(inputs=inputt, outputs=output)
+        self.compile_model()
 
 
 class CSEDASpellingModel(CSEDAModel, SpellingModel):
