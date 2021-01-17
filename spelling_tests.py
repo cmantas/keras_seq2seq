@@ -15,7 +15,7 @@ mclass = ECCNNSpellingModel
 
 max_len = 20
 #fname = 'data/sentences.txt'
-fname = 'bare_kps.txt'
+fname = 'data/bare_kps.txt'
 all_phrases = load_preprocessed(fname, max_len)
 all_phrases = all_phrases[:20_000]
 model = mclass(max_len, 128)
