@@ -17,10 +17,11 @@ from tensorflow.keras.layers import (
     Reshape,
     Embedding,
     Layer,
-    Dropout,
+    Dropout
 )
 import tensorflow as tf
 
+from multi_head_attention import MultiHeadAttention
 
 from tensorflow.keras import backend as K
 import numpy as np
@@ -47,6 +48,35 @@ class SEDModel(S2SModel):
 
 class SEDSpellingModel(SEDModel, SpellingModel):
     pass
+
+class BahdanauAttention(Layer):
+  def __init__(self, units):
+      super(BahdanauAttention, self).__init__()
+      self.W1 = Dense(units)
+      self.W2 = Dense(units)
+      self.V = Dense(1)
+
+  def call(self, query, values):
+      # query hidden state shape == (batch_size, hidden size)
+      # query_with_time_axis shape == (batch_size, 1, hidden size)
+      # values shape == (batch_size, max_len, hidden size)
+      # we are doing this to broadcast addition along the time axis to calculate the score
+    query_with_time_axis = tf.expand_dims(query, 1)
+
+    # score shape == (batch_size, max_length, 1)
+    # we get 1 at the last axis because we are applying score to self.V
+    # the shape of the tensor before applying self.V is (batch_size, max_length, units)
+    score = self.V(tf.nn.tanh(
+        self.W1(query_with_time_axis) + self.W2(values)))
+
+    # attention_weights shape == (batch_size, max_length, 1)
+    attention_weights = tf.nn.softmax(score, axis=1)
+
+    # context_vector shape after sum == (batch_size, hidden_size)
+    context_vector = attention_weights * values
+    context_vector = tf.reduce_sum(context_vector, axis=1)
+
+    return context_vector, attention_weights
 
 class SEDAModel(S2SModel):
     def create_model(self):
@@ -169,7 +199,7 @@ class ECCNNModel(S2SModel):
         embedded = emb(inputt)
 
         conv2 = Conv1D(
-            self.latent_dim, kernel_size=2, activation='tanh', padding='same'
+            self.latent_dim, kernel_size=2, activation='tanh', padding='same'#,dilation_rate=2
         )(embedded)
 
         lstm_input = concatenate([embedded, conv2])
